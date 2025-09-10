@@ -1,37 +1,22 @@
-using TaskManager.Application;
-using TaskManager.Core;
-using TaskManager.Core.Entities;
+using TaskManager.Core.Interfaces;
 
-public class ManagedTaskService : IManagedTaskRepository
+namespace TaskManager.Application.Services
 {
-    private readonly IManagedTaskRepository _managedTaskRepository;
-    public ManagedTaskService(IManagedTaskRepository managedTaskRepository)
+    public class ManagedTaskService
     {
-        _managedTaskRepository = managedTaskRepository;
-    }
+        private readonly IManagedTaskRepository _managedTaskRepository;
+        public ManagedTaskService(IManagedTaskRepository managedTaskRepository)
+        {
+            _managedTaskRepository = managedTaskRepository;
+        }
+        public async Task UpdateTaskAsync(int id, ManagedTaskDto managedTaskDto)
+        {
+            var managedTask = await _managedTaskRepository.GetAsync(id);
 
-    public Task AddAsync(Task task)
-    {
-        throw new NotImplementedException();
-    }
+            if (managedTask == null)
+                throw new Exception("Task not found in database");
 
-    public Task DeleteAsync(int taskId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task GetTaskById(int taskId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<IEnumerable<ManagedTask>> GetUserTasks(int userId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task UpdateAsync(Task task)
-    {
-        throw new NotImplementedException();
+            await _managedTaskRepository.UpdateAsync(managedTask);
+        }
     }
 }
