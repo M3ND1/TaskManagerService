@@ -1,4 +1,3 @@
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.EntityFrameworkCore;
 using TaskManager.Core.Entities;
 using TaskManager.Core.Interfaces;
@@ -33,7 +32,7 @@ namespace TaskManager.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception("Error occured while retrieving task from database");
+                throw new Exception($"Error occured while retrieving task from database: {ex.Message}");
             }
         }
         public async Task<bool> UpdateAsync(ManagedTask task)
@@ -65,7 +64,6 @@ namespace TaskManager.Infrastructure.Repositories
                     .SetProperty(t => t.EstimatedHours, managedTask.EstimatedHours)
                     .SetProperty(t => t.ActualHours, managedTask.ActualHours)
                 );
-                await _dbContext.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)

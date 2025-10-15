@@ -44,7 +44,7 @@ namespace TaskManager.Infrastructure.Repositories
             {
                 if (user == null)
                     return false;
-                if (user.Id == null || !await _dbContext.Users.AnyAsync(u => u.Id == user.Id))
+                if (!await _dbContext.Users.AnyAsync(u => u.Id == user.Id))
                     return false;
 
                 int rowsAffected = await _dbContext.Users.Where(u => u.Id == user.Id).ExecuteUpdateAsync(u => u
@@ -69,10 +69,12 @@ namespace TaskManager.Infrastructure.Repositories
                 User? user = await GetAsync(userId);
                 if (user == null)
                     return false;
-                //TODO: Delete related managed task with user 
 
+                if (await _dbContext.ManagedTasks.AnyAsync(t => t.AssignedToId == userId || t.CreatedById == userId))
+                {
+                    await _dbContext.ManagedTasks.Where(t => t.AssignedToId == userId || t.CreatedById == userId).ExecuteDeleteAsync();
+                }
                 await _dbContext.Users.Where(u => u.Id == userId).ExecuteDeleteAsync();
-                await _dbContext.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
