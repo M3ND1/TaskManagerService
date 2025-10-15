@@ -1,3 +1,4 @@
+using TaskManager.Application.DTOs;
 using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Application.Services

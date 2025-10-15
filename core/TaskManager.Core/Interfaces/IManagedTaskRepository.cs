@@ -5,10 +5,10 @@ namespace TaskManager.Core.Interfaces
 {
     public interface IManagedTaskRepository
     {
-        Task AddAsync(ManagedTask task);
-        Task<ManagedTask> GetAsync(int taskId);
-        Task UpdateAsync(ManagedTask task);
-        Task DeleteAsync(int taskId);
+        Task<bool> AddAsync(ManagedTask task);
+        Task<ManagedTask?> GetAsync(int taskId);
+        Task<bool> UpdateAsync(ManagedTask task);
+        Task<bool> DeleteAsync(int taskId);
         // Task<bool> ManagedTaskExistAsync(int taskId);
         // Task<bool> ManagedTaskDoneAsync(int taskId);
         // Task<IEnumerable<ManagedTask>> GetAllUserManagedTasksAsync(int userId);
