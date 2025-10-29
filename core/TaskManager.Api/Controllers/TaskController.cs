@@ -13,12 +13,11 @@ namespace TaskManager.Api.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateTask([FromBody] CreateManagedTaskDto createManagedTaskDto)
+        public async Task<IActionResult> CreateTask([FromBody] CreateManagedTaskDto createManagedTaskDto, int userId)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
-            ManagedTaskResponseDto? result = await _managedTaskService.CreateTaskAsync(createManagedTaskDto);
+            ManagedTaskResponseDto? result = await _managedTaskService.CreateTaskAsync(createManagedTaskDto, userId);
             if (result == null)
                 return BadRequest(new { message = "Could not create task" });
 
@@ -51,7 +50,7 @@ namespace TaskManager.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        [ProducesResponseType(typeof(UpdateManagedTaskDto), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteTask(int id)
         {

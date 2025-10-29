@@ -5,7 +5,7 @@ namespace TaskManager.Core.Interfaces
 {
     public interface IManagedTaskRepository
     {
-        Task<bool> AddAsync(ManagedTask task);
+        Task<bool> AddAsync(ManagedTask task, int userId);
         Task<ManagedTask?> GetAsync(int taskId);
         Task<bool> UpdateAsync(ManagedTask task);
         Task<bool> DeleteAsync(int taskId);
