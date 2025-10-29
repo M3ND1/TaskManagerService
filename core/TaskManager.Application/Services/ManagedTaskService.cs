@@ -14,10 +14,13 @@ namespace TaskManager.Application.Services
             _managedTaskRepository = managedTaskRepository;
             _mapper = mapper;
         }
-        public async Task<ManagedTaskResponseDto?> CreateTaskAsync(CreateManagedTaskDto managedTaskDto, int userId = 1)
+        public async Task<ManagedTaskResponseDto?> CreateTaskAsync(CreateManagedTaskDto managedTaskDto, int userId, int? assignedToId = null)
         {
             ManagedTask managedTask = _mapper.Map<ManagedTask>(managedTaskDto);
-            return await _managedTaskRepository.AddAsync(managedTask, userId) == true ? _mapper.Map<ManagedTaskResponseDto>(managedTask) : null;
+            managedTask.AssignedToId = assignedToId;
+            managedTask.CreatedById = userId;
+
+            return await _managedTaskRepository.AddAsync(managedTask) == true ? _mapper.Map<ManagedTaskResponseDto>(managedTask) : null;
         }
         public async Task<ManagedTaskResponseDto?> GetTaskAsync(int id)
         {

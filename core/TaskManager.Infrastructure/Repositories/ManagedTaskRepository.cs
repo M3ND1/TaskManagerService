@@ -11,17 +11,18 @@ namespace TaskManager.Infrastructure.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<bool> AddAsync(ManagedTask task, int userId)
+        public async Task<bool> AddAsync(ManagedTask task)
         {
-            task.AssignedToId = userId;
-            //TODO: create function to search for user by Id and assign to task
             await _dbContext.ManagedTasks.AddAsync(task);
             await _dbContext.SaveChangesAsync();
             return true;
         }
         public async Task<ManagedTask?> GetAsync(int taskId)
         {
-            return await _dbContext.ManagedTasks.FirstOrDefaultAsync(x => x.Id == taskId);
+            return await _dbContext.ManagedTasks
+                .Include(t => t.CreatedBy)
+                .Include(t => t.AssignedTo)
+                .FirstOrDefaultAsync(x => x.Id == taskId);
         }
         public async Task<bool> UpdateAsync(ManagedTask task)
         {
