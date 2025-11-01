@@ -7,7 +7,7 @@ namespace TaskManager.Core.Interfaces
     {
         Task<bool> AddAsync(ManagedTask task);
         Task<ManagedTask?> GetAsync(int taskId);
-        Task<bool> UpdateAsync(ManagedTask task);
+        Task<bool> UpdateAsync(ManagedTask mappedTask);
         Task<bool> DeleteAsync(int taskId);
         // Task<bool> ManagedTaskExistAsync(int taskId);
         // Task<bool> ManagedTaskDoneAsync(int taskId);

@@ -1,4 +1,6 @@
+using AutoMapper;
 using TaskManager.Application.DTOs;
+using TaskManager.Core.Entities;
 using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Application.Services
@@ -6,18 +8,41 @@ namespace TaskManager.Application.Services
     public class ManagedTaskService
     {
         private readonly IManagedTaskRepository _managedTaskRepository;
-        public ManagedTaskService(IManagedTaskRepository managedTaskRepository)
+        private readonly IMapper _mapper;
+        public ManagedTaskService(IManagedTaskRepository managedTaskRepository, IMapper mapper)
         {
             _managedTaskRepository = managedTaskRepository;
+            _mapper = mapper;
         }
-        public async Task UpdateTaskAsync(int id, ManagedTaskDto managedTaskDto)
+        public async Task<ManagedTaskResponseDto?> CreateTaskAsync(CreateManagedTaskDto managedTaskDto, int userId, int? assignedToId = null)
         {
-            var managedTask = await _managedTaskRepository.GetAsync(id);
+            ManagedTask managedTask = _mapper.Map<ManagedTask>(managedTaskDto);
+            managedTask.AssignedToId = assignedToId;
+            managedTask.CreatedById = userId;
 
-            if (managedTask == null)
-                throw new Exception("Task not found in database");
+            return await _managedTaskRepository.AddAsync(managedTask) == true ? _mapper.Map<ManagedTaskResponseDto>(managedTask) : null;
+        }
+        public async Task<ManagedTaskResponseDto?> GetTaskAsync(int id)
+        {
+            ManagedTask? managedTask = await _managedTaskRepository.GetAsync(id);
+            return managedTask == null ? null : _mapper.Map<ManagedTaskResponseDto>(managedTask);
+        }
+        public async Task<bool> UpdateTaskAsync(int id, UpdateManagedTaskDto managedTaskDto)
+        {
+            var taskFromDb = await _managedTaskRepository.GetAsync(id);
+            if (taskFromDb == null)
+                return false;
 
-            await _managedTaskRepository.UpdateAsync(managedTask);
+            _mapper.Map(managedTaskDto, taskFromDb);
+            taskFromDb.UpdatedAt = DateTime.UtcNow;
+            return await _managedTaskRepository.UpdateAsync(taskFromDb);
+        }
+        public async Task<bool> DeleteTaskAsync(int id)
+        {
+            ManagedTask? managedTask = await _managedTaskRepository.GetAsync(id);
+            if (managedTask == null) return false;
+
+            return await _managedTaskRepository.DeleteAsync(id);
         }
     }
 }

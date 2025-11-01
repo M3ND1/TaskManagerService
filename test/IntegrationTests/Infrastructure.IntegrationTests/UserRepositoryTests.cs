@@ -4,7 +4,6 @@ using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Shouldly;
 using TaskManager.Core.Entities;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Repositories;
@@ -52,7 +51,7 @@ public class UserRepositoryTests : IDisposable
         var result = await _repository.AddAsync(user);
 
         result.Should().BeTrue();
-        _context.Users.Count().ShouldBeGreaterThan(_usersInDatabase);
+        _context.Users.Count().Should().BeGreaterThan(_usersInDatabase);
 
         var fromDb = await _context.Users.FirstOrDefaultAsync(u =>
             u.FirstName == user.FirstName &&
@@ -69,7 +68,7 @@ public class UserRepositoryTests : IDisposable
         var result = await _repository.AddAsync(null);
 
         result.Should().BeFalse();
-        _context.Users.Count().ShouldBe(_usersInDatabase);
+        _context.Users.Count().Should().Be(_usersInDatabase);
     }
 
     [Theory]
@@ -89,12 +88,12 @@ public class UserRepositoryTests : IDisposable
         var result = await _repository.GetAsync(1);
 
         result.Should().NotBeNull();
-        result.Id.ShouldBe(existingUser.Id);
-        result.FirstName.ShouldBe(existingUser.FirstName);
-        result.LastName.ShouldBe(existingUser.LastName);
-        result.Email.ShouldBe(existingUser.Email);
-        result.PhoneNumber.ShouldBe(existingUser.PhoneNumber);
-        result.Username.ShouldBe(existingUser.Username);
+        result.Id.Should().Be(existingUser.Id);
+        result.FirstName.Should().Be(existingUser.FirstName);
+        result.LastName.Should().Be(existingUser.LastName);
+        result.Email.Should().Be(existingUser.Email);
+        result.PhoneNumber.Should().Be(existingUser.PhoneNumber);
+        result.Username.Should().Be(existingUser.Username);
     }
     [Fact]
     public async Task UpdateAsync_Should_Return_True_And_Update_User()
@@ -114,11 +113,11 @@ public class UserRepositoryTests : IDisposable
         result.Should().BeTrue();
         var fromDb = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
         fromDb.Should().NotBeNull();
-        fromDb.FirstName.ShouldBe(user.FirstName);
-        fromDb.LastName.ShouldBe(user.LastName);
-        fromDb.Email.ShouldBe(user.Email);
-        fromDb.PhoneNumber.ShouldBe(user.PhoneNumber);
-        fromDb.Username.ShouldBe(user.Username);
+        fromDb.FirstName.Should().Be(user.FirstName);
+        fromDb.LastName.Should().Be(user.LastName);
+        fromDb.Email.Should().Be(user.Email);
+        fromDb.PhoneNumber.Should().Be(user.PhoneNumber);
+        fromDb.Username.Should().Be(user.Username);
     }
     [Fact]
     public async Task UpdateAsync_Should_Return_False_When_User_Is_Null()
@@ -145,8 +144,8 @@ public class UserRepositoryTests : IDisposable
         var result = await _repository.DeleteAsync(userId);
         _context.ChangeTracker.Clear();
         //Assert
-        result.ShouldBe(true);
-        _context.Users.Count().ShouldBeLessThan(_usersInDatabase);
+        result.Should().Be(true);
+        _context.Users.Count().Should().BeLessThan(_usersInDatabase);
     }
     [Theory]
     [InlineData(-1)]
@@ -158,8 +157,8 @@ public class UserRepositoryTests : IDisposable
         var result = await _repository.DeleteAsync(userId);
 
         //Assert
-        result.ShouldBe(false);
-        _context.Users.Count().ShouldBeEquivalentTo(_usersInDatabase);
+        result.Should().Be(false);
+        _context.Users.Count().Should().Be(_usersInDatabase);
     }
     public void Dispose()
     {

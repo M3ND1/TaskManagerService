@@ -1,4 +1,4 @@
-using Shouldly;
+using FluentAssertions;
 using TaskManager.Core.Entities;
 
 namespace Core.UnitTests.Entities;
@@ -12,19 +12,19 @@ public class UserTests
         var user = new User();
 
         // Assert
-        user.Id.ShouldBe(0);
-        user.FirstName.ShouldBeNull();
-        user.LastName.ShouldBeNull();
-        user.Email.ShouldBeNull();
-        user.PhoneNumber.ShouldBeNull();
-        user.Username.ShouldBeNull();
-        user.PasswordHash.ShouldBeNull();
-        user.PasswordSalt.ShouldBeNull();
-        user.IsActive.ShouldBeTrue();
-        user.CreatedAt.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow.AddSeconds(5));
-        user.LastLoginAt.ShouldBeNull();
-        user.UpdatedAt.ShouldBeNull();
-        user.AssignedTasks.ShouldBeNull();
-        user.CreatedTasks.ShouldBeNull();
+        user.Id.Should().Be(0);
+        user.FirstName.Should().BeNull();
+        user.LastName.Should().BeNull();
+        user.Email.Should().BeNull();
+        user.PhoneNumber.Should().BeNull();
+        user.Username.Should().BeNull();
+        user.PasswordHash.Should().BeNull();
+        user.PasswordSalt.Should().BeNull();
+        user.IsActive.Should().BeTrue();
+        user.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        user.LastLoginAt.Should().BeNull();
+        user.UpdatedAt.Should().BeNull();
+        user.AssignedTasks.Should().BeNull();
+        user.CreatedTasks.Should().BeNull();
     }
 }
