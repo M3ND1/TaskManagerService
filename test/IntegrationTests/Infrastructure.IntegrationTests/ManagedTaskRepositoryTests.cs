@@ -1,7 +1,6 @@
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Shouldly;
 using TaskManager.Core.Entities;
 using TaskManager.Core.Enums;
 using TaskManager.Infrastructure;
@@ -14,7 +13,7 @@ public class ManagedTaskRepositoryTests : IDisposable
     private readonly ManagedTaskRepository _repository;
     private readonly TaskManagerDbContext _context;
     private readonly int _managedTasksInDatabase;
-    private SqliteConnection _sqliteConnection;
+    private readonly SqliteConnection _sqliteConnection;
     public ManagedTaskRepositoryTests()
     {
         _sqliteConnection = new SqliteConnection("DataSource=:memory:");
@@ -51,7 +50,7 @@ public class ManagedTaskRepositoryTests : IDisposable
         var managedTask = await _repository.GetAsync(id);
 
         managedTask.Should().NotBeNull();
-        managedTask!.Id.ShouldBeOneOf([1, 2, 3, 4]);
+        managedTask!.Id.Should().BeOneOf([1, 2, 3, 4]);
     }
     [Fact]
     public async Task AddAsync_Should_ReturnException()
@@ -78,7 +77,7 @@ public class ManagedTaskRepositoryTests : IDisposable
 
         //Assert
         cut.Should().BeTrue();
-        _context.ManagedTasks.Count().ShouldBeGreaterThan(_managedTasksInDatabase);
+        _context.ManagedTasks.Count().Should().BeGreaterThan(_managedTasksInDatabase);
         //needed?
         var fromDb = await _context.ManagedTasks.FirstOrDefaultAsync(
             t => t.CreatedAt == newTask.CreatedAt &&
@@ -96,10 +95,10 @@ public class ManagedTaskRepositoryTests : IDisposable
         };
         bool cut = await _repository.UpdateAsync(mt);
 
-        cut.As<bool>().ShouldBe(true);
+        cut.As<bool>().Should().Be(true);
         var fromDb = await _context.ManagedTasks.FirstOrDefaultAsync(t => t.Id == 1);
-        fromDb.ShouldNotBe(null);
-        fromDb.Title.ShouldBe("SuperSecretTitle");
+        fromDb.Should().NotBe(null);
+        fromDb.Title.Should().Be("SuperSecretTitle");
     }
 
     [Fact]
@@ -119,29 +118,29 @@ public class ManagedTaskRepositoryTests : IDisposable
         bool cut = await _repository.UpdateAsync(mt);
         _context.ChangeTracker.Clear();
 
-        cut.As<bool>().ShouldBe(true);
+        cut.As<bool>().Should().Be(true);
         var fromDb = await _context.ManagedTasks.FirstOrDefaultAsync(t => t.Id == mt.Id);
-        fromDb.ShouldNotBe(null);
-        fromDb.Title.ShouldBe("Title123");
-        fromDb.Description.ShouldBe("Description123123123");
+        fromDb.Should().NotBe(null);
+        fromDb.Title.Should().Be("Title123");
+        fromDb.Description.Should().Be("Description123123123");
         fromDb.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        fromDb.Priority.ShouldBe(PriorityLevel.High);
-        fromDb.EstimatedHours.ShouldBe(5);
+        fromDb.Priority.Should().Be(PriorityLevel.High);
+        fromDb.EstimatedHours.Should().Be(5);
     }
 
     [Fact]
     public async Task UpdateAsync_Should_ReturnFalse()
     {
         var result = await _repository.UpdateAsync(new ManagedTask());
-        result.As<bool>().ShouldBe(false);
+        result.As<bool>().Should().Be(false);
     }
     [Fact]
     public async Task DeleteAsync_Should_DeleteTask()
     {
         var result = await _repository.DeleteAsync(1);
-        result.As<bool>().ShouldBe(true);
+        result.As<bool>().Should().Be(true);
         var fromDb = await _context.ManagedTasks.FirstOrDefaultAsync(t => t.Id == 1);
-        fromDb.ShouldBeNull();
+        fromDb.Should().BeNull();
     }
     [Theory]
     [InlineData(999)]
@@ -149,7 +148,7 @@ public class ManagedTaskRepositoryTests : IDisposable
     public async Task DeleteAsync_Should_ReturnFalse(int id)
     {
         var result = await _repository.DeleteAsync(id);
-        result.As<bool>().ShouldBe(false);
+        result.As<bool>().Should().Be(false);
     }
     public void Dispose()
     {

@@ -29,13 +29,13 @@ namespace TaskManager.Application.Services
         }
         public async Task<bool> UpdateTaskAsync(int id, UpdateManagedTaskDto managedTaskDto)
         {
-            var managedTask = await _managedTaskRepository.GetAsync(id);
-            if (managedTask == null)
+            var taskFromDb = await _managedTaskRepository.GetAsync(id);
+            if (taskFromDb == null)
                 return false;
 
-            _mapper.Map(managedTaskDto, managedTask);
-            managedTask.UpdatedAt = DateTime.UtcNow;
-            return await _managedTaskRepository.UpdateAsync(managedTask);
+            _mapper.Map(managedTaskDto, taskFromDb);
+            taskFromDb.UpdatedAt = DateTime.UtcNow;
+            return await _managedTaskRepository.UpdateAsync(taskFromDb);
         }
         public async Task<bool> DeleteTaskAsync(int id)
         {

@@ -15,6 +15,7 @@ namespace TaskManager.Application.DTOs
         public bool? IsCompleted { get; set; }
         public int? EstimatedHours { get; set; }
         public int? ActualHours { get; set; }
+        public int CreatedById { get; set; }
         public UserResponseDto? CreatedBy { get; set; }
         public UserResponseDto? AssignedTo { get; set; }
     }

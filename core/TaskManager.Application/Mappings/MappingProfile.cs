@@ -27,6 +27,8 @@ namespace TaskManager.Application.Mappings
 
             CreateMap<UpdateManagedTaskDto, ManagedTask>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<ManagedTask, ManagedTask>();
         }
     }
 }

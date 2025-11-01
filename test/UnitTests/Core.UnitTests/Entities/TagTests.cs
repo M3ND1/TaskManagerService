@@ -1,4 +1,4 @@
-using Shouldly;
+using FluentAssertions;
 using TaskManager.Core.Entities;
 
 namespace Core.UnitTests.Entities;
@@ -12,14 +12,14 @@ public class TagTests
         var tag = new Tag();
 
         // Assert
-        tag.Id.ShouldBe(0);
-        tag.Name.ShouldBe(string.Empty);
-        tag.Color.ShouldBeNull();
-        tag.Description.ShouldBeNull();
-        tag.CreatedAt.ShouldBeInRange(DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow.AddSeconds(5));
-        tag.UpdatedAt.ShouldBeNull();
-        tag.CreatedById.ShouldBeNull();
-        tag.CreatedBy.ShouldBeNull();
-        tag.ManagedTasks.ShouldBeNull();
+        tag.Id.Should().Be(0);
+        tag.Name.Should().Be(string.Empty);
+        tag.Color.Should().BeNull();
+        tag.Description.Should().BeNull();
+        tag.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        tag.UpdatedAt.Should().BeNull();
+        tag.CreatedById.Should().BeNull();
+        tag.CreatedBy.Should().BeNull();
+        tag.ManagedTasks.Should().BeNull();
     }
 }
