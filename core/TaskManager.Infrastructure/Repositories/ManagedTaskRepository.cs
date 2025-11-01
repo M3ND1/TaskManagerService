@@ -26,9 +26,18 @@ namespace TaskManager.Infrastructure.Repositories
         }
         public async Task<bool> UpdateAsync(ManagedTask mappedTask)
         {
-            _dbContext.ManagedTasks.Update(mappedTask);
-            var affectedRows = await _dbContext.SaveChangesAsync();
-            return affectedRows > 0;
+            try
+            {
+                _dbContext.ManagedTasks.Update(mappedTask);
+                var affectedRows = await _dbContext.SaveChangesAsync();
+                return affectedRows > 0;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                //Affected 0 rows means that the entity to update does not exist
+                //TODO: Log exception
+                return false;
+            }
         }
         public async Task<bool> DeleteAsync(int taskId)
         {

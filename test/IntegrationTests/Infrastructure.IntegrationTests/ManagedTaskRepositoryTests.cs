@@ -78,7 +78,6 @@ public class ManagedTaskRepositoryTests : IDisposable
         //Assert
         cut.Should().BeTrue();
         _context.ManagedTasks.Count().Should().BeGreaterThan(_managedTasksInDatabase);
-        //needed?
         var fromDb = await _context.ManagedTasks.FirstOrDefaultAsync(
             t => t.CreatedAt == newTask.CreatedAt &&
             t.Description == newTask.Description);
@@ -88,16 +87,19 @@ public class ManagedTaskRepositoryTests : IDisposable
     [Fact]
     public async Task UpdateAsync_Should_UpdateCorrectTaskTitle()
     {
+        _context.ChangeTracker.Clear();
         var mt = new ManagedTask
         {
             Id = 1,
-            Title = "SuperSecretTitle"
+            Title = "SuperSecretTitle",
+            CreatedById = 1
         };
         bool cut = await _repository.UpdateAsync(mt);
 
-        cut.As<bool>().Should().Be(true);
-        var fromDb = await _context.ManagedTasks.FirstOrDefaultAsync(t => t.Id == 1);
-        fromDb.Should().NotBe(null);
+        cut.Should().Be(true);
+        var fromDb = await _context.ManagedTasks.FirstOrDefaultAsync(t => t.Id == mt.Id, CancellationToken.None);
+        fromDb.Should().NotBeNull();
+        fromDb.Id.Should().Be(1);
         fromDb.Title.Should().Be("SuperSecretTitle");
     }
 
@@ -114,6 +116,7 @@ public class ManagedTaskRepositoryTests : IDisposable
             Priority = PriorityLevel.High,
             IsCompleted = true,
             EstimatedHours = 5,
+            CreatedById = 1
         };
         bool cut = await _repository.UpdateAsync(mt);
         _context.ChangeTracker.Clear();
@@ -131,7 +134,14 @@ public class ManagedTaskRepositoryTests : IDisposable
     [Fact]
     public async Task UpdateAsync_Should_ReturnFalse()
     {
-        var result = await _repository.UpdateAsync(new ManagedTask());
+        _context.ChangeTracker.Clear();
+        var nonExistentTask = new ManagedTask
+        {
+            Id = 999,
+            Title = "Non-existent task",
+            CreatedById = 1
+        };
+        var result = await _repository.UpdateAsync(nonExistentTask);
         result.As<bool>().Should().Be(false);
     }
     [Fact]
