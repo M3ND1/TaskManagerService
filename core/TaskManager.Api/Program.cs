@@ -1,3 +1,4 @@
+using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using TaskManager.Api.Exceptions.Handlers;
@@ -12,6 +13,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<TaskManager.Application.Validators.CreateUserDtoValidator>();
 
 
 builder.Services.AddDbContext<TaskManagerDbContext>(options =>

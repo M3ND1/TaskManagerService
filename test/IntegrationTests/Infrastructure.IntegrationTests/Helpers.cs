@@ -49,9 +49,9 @@ public class Helpers
     {
         return
         [
-            new() { Id = 1, FirstName = "Chris", LastName = "Nynek", Email="Chris123@gmail.com", PhoneNumber = "123456789", Username = "ChrisNyn", PasswordHash= Guid.NewGuid().ToString(), PasswordSalt=Guid.NewGuid().ToString(), IsActive = true, CreatedAt = new DateTime() },
-            new() { Id = 2, FirstName = "John", LastName = "Doe", Email="JohnDoe@gmail.com", PhoneNumber = "987654321", Username = "JohnDoe", PasswordHash= Guid.NewGuid().ToString(), PasswordSalt=Guid.NewGuid().ToString(), IsActive = true, CreatedAt = new DateTime() },
-            new() { Id = 3, FirstName = "Jane", LastName = "Smith", Email="JaneSmith@gmail.com", PhoneNumber = "456789123", Username = "JaneSmith", PasswordHash= Guid.NewGuid().ToString(), PasswordSalt=Guid.NewGuid().ToString(), IsActive = true, CreatedAt = new DateTime() },
+            new() { Id = 1, FirstName = "Chris", LastName = "Nynek", Email="Chris123@gmail.com", PhoneNumber = "123456789", Username = "ChrisNyn", PasswordHash= Guid.NewGuid().ToString(), IsActive = true, CreatedAt = new DateTime() },
+            new() { Id = 2, FirstName = "John", LastName = "Doe", Email="JohnDoe@gmail.com", PhoneNumber = "987654321", Username = "JohnDoe", PasswordHash= Guid.NewGuid().ToString(), IsActive = true, CreatedAt = new DateTime() },
+            new() { Id = 3, FirstName = "Jane", LastName = "Smith", Email="JaneSmith@gmail.com", PhoneNumber = "456789123", Username = "JaneSmith", PasswordHash= Guid.NewGuid().ToString(), IsActive = true, CreatedAt = new DateTime() },
         ];
     }
 }

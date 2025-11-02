@@ -19,7 +19,6 @@ public class UserTests
         user.PhoneNumber.Should().BeNull();
         user.Username.Should().BeNull();
         user.PasswordHash.Should().BeNull();
-        user.PasswordSalt.Should().BeNull();
         user.IsActive.Should().BeTrue();
         user.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         user.LastLoginAt.Should().BeNull();

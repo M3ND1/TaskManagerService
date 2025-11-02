@@ -45,7 +45,6 @@ public class UserRepositoryTests : IDisposable
             PhoneNumber = "123123123",
             Username = "TestUsername",
             PasswordHash = "TestHash",
-            PasswordSalt = "TestSalt"
         };
 
         var result = await _repository.AddAsync(user);
