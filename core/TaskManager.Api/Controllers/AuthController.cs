@@ -20,9 +20,6 @@ namespace TaskManager.Api.Controllers
             if (await _userService.CheckIfEmailExists(createUserDto.Email))
                 return BadRequest(new { message = "Email already exists in database" });
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var result = await _userService.CreateUserAsync(createUserDto);
             if (result == null) return BadRequest(new { message = "Something went wrong while creating user" });
 
@@ -45,8 +42,6 @@ namespace TaskManager.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState); //TODO: FluentValidations
-
             var hashedPassword = await _userService.GetUserHashedPasswordByUsernameAsync(userLoginDto.Username);
             if (hashedPassword == null)
                 return BadRequest(new { message = "Invalid email or password." });

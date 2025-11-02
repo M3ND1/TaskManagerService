@@ -15,9 +15,6 @@ namespace TaskManager.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto updateUserDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var result = await _userService.UpdateUserAsync(id, updateUserDto);
             if (!result) return BadRequest(new { message = "Something went wrong while updating user account" });
 

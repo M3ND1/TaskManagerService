@@ -21,14 +21,15 @@ namespace TaskManager.Application.Validators
 
             RuleFor(u => u.Password)
                 .ApplyPasswordRules();
-            //TODO: black listed passwords function check
-            //TODO: Confirm password that matches password?
+
+            RuleFor(u => u.ConfirmPassword)
+                .NotEmpty()
+                .Equal(u => u.Password).WithMessage("Passwords do not match.")
+                .When(u => !string.IsNullOrEmpty(u.Password));
 
             RuleFor(u => u.PhoneNumber)
-                .Length(9, 15).WithMessage("Phone number must be between 9 and 15 digits.")
-                .Matches(@"^\d+$").WithMessage("Phone number can only contain digits.")
+                .ApplyPhoneRules()
                 .When(u => !string.IsNullOrEmpty(u.PhoneNumber));
-
         }
     }
 }

@@ -15,8 +15,6 @@ namespace TaskManager.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateTask([FromBody] CreateManagedTaskDto createManagedTaskDto, int userId)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
             ManagedTaskResponseDto? result = await _managedTaskService.CreateTaskAsync(createManagedTaskDto, userId);
             if (result == null)
                 return BadRequest(new { message = "Could not create task" });
@@ -39,9 +37,6 @@ namespace TaskManager.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateManagedTaskDto updateManagedTaskDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             bool success = await _managedTaskService.UpdateTaskAsync(id, updateManagedTaskDto);
 
             if (!success) return NotFound(new { message = "Task not found" });
