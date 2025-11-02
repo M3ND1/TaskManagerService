@@ -23,8 +23,17 @@ namespace TaskManager.Infrastructure.Repositories
         {
             return await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
+        public async Task<bool> EmailExistsAsync(string email)
+        {
+            return await _dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email);
+        }
+        public async Task<bool> IsEmailTakenByOtherUserAsync(string email, int userId)
+        {
+            return await _dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email && u.Id != userId);
+        }
         public async Task<bool> UpdateAsync(User user)
         {
+            //refactor to use Update only, business logic to be handled in service layer
             if (user == null)
                 return false;
             if (!await _dbContext.Users.AnyAsync(u => u.Id == user.Id))
@@ -52,6 +61,17 @@ namespace TaskManager.Infrastructure.Repositories
             }
             await _dbContext.Users.Where(u => u.Id == userId).ExecuteDeleteAsync();
             return true;
+        }
+
+
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            return await _dbContext.Users.AsNoTracking().Where(u => u.Username == username).FirstOrDefaultAsync();
+        }
+
+        public async Task<string?> GetUserPasswordHashByUsernameAsync(string username)
+        {
+            return await _dbContext.Users.AsNoTracking().Where(u => u.Username == username).Select(u => u.PasswordHash).SingleOrDefaultAsync();
         }
     }
 }

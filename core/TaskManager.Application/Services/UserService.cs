@@ -9,22 +9,33 @@ namespace TaskManager.Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        public UserService(IUserRepository userRepository, IMapper mapper)
+        private readonly IPasswordService _passwordService;
+        public UserService(IUserRepository userRepository, IMapper mapper, IPasswordService passwordService)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _passwordService = passwordService;
         }
         public async Task<UserResponseDto?> CreateUserAsync(CreateUserDto userDto)
         {
-            //check if email already exists in DB
+            if (await _userRepository.EmailExistsAsync(userDto.Email)) return null;
+
             User user = _mapper.Map<User>(userDto);
-            //TODO: PasswordHash & Salt
+            user.PasswordHash = _passwordService.SecurePassword(userDto.Password);
             return await _userRepository.AddAsync(user) == true ? _mapper.Map<UserResponseDto>(user) : null;
         }
         public async Task<UserResponseDto?> GetUserAsync(int id)
         {
             var user = await _userRepository.GetAsync(id);
             return user == null ? null : _mapper.Map<UserResponseDto>(user);
+        }
+        public async Task<bool> CheckIfEmailExists(string email)
+        {
+            return await _userRepository.EmailExistsAsync(email);
+        }
+        public async Task<string?> GetUserHashedPasswordByUsernameAsync(string username)
+        {
+            return await _userRepository.GetUserPasswordHashByUsernameAsync(username);
         }
         public async Task<bool> UpdateUserAsync(int id, UpdateUserDto userDto)
         {

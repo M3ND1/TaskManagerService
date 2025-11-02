@@ -8,7 +8,7 @@ namespace TaskManager.Api.Controllers
     [Route("api/[controller]")]
     public class TaskController(ManagedTaskService managedTaskService) : ControllerBase
     {
-        private ManagedTaskService _managedTaskService = managedTaskService;
+        private readonly ManagedTaskService _managedTaskService = managedTaskService;
 
         [HttpPost]
         [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status201Created)]
