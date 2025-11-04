@@ -8,15 +8,13 @@ namespace TaskManager.Api.Controllers
     [Route("api/[controller]")]
     public class TaskController(ManagedTaskService managedTaskService) : ControllerBase
     {
-        private ManagedTaskService _managedTaskService = managedTaskService;
+        private readonly ManagedTaskService _managedTaskService = managedTaskService;
 
         [HttpPost]
         [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateTask([FromBody] CreateManagedTaskDto createManagedTaskDto, int userId)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
             ManagedTaskResponseDto? result = await _managedTaskService.CreateTaskAsync(createManagedTaskDto, userId);
             if (result == null)
                 return BadRequest(new { message = "Could not create task" });
@@ -39,9 +37,6 @@ namespace TaskManager.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateManagedTaskDto updateManagedTaskDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             bool success = await _managedTaskService.UpdateTaskAsync(id, updateManagedTaskDto);
 
             if (!success) return NotFound(new { message = "Task not found" });

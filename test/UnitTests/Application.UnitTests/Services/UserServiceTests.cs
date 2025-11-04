@@ -13,6 +13,7 @@ namespace Application.UnitTests.Services
     {
         private readonly IMapper _mapper;
         private readonly Mock<IUserRepository> _userRepository;
+        private readonly Mock<IPasswordService> _passwordService;
         private readonly UserService _userService;
 
         public UserServiceTests()
@@ -24,7 +25,8 @@ namespace Application.UnitTests.Services
             IMapper mapper = mappingConfig.CreateMapper();
             _mapper = mapper;
             _userRepository = new Mock<IUserRepository>();
-            _userService = new UserService(_userRepository.Object, _mapper);
+            _passwordService = new Mock<IPasswordService>();
+            _userService = new UserService(_userRepository.Object, _mapper, _passwordService.Object);
         }
 
         [Fact]

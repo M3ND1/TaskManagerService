@@ -23,7 +23,6 @@ public class TaskManagerDbContext : DbContext
             e.Property(e => e.PhoneNumber).HasMaxLength(12);
             e.Property(e => e.Username).IsRequired().HasMaxLength(50);
             e.Property(e => e.PasswordHash).IsRequired().HasMaxLength(256);
-            e.Property(e => e.PasswordSalt).IsRequired().HasMaxLength(256);
             e.Property(e => e.CreatedAt).IsRequired();
             e.Property(e => e.LastLoginAt).IsRequired(false);
             e.Property(e => e.UpdatedAt).IsRequired(false);

@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using TaskManager.Api.Exceptions.Handlers;
 using TaskManager.Application.Mappings;
@@ -7,6 +9,11 @@ using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<TaskManager.Application.Validators.CreateUserDtoValidator>();
+
 
 builder.Services.AddDbContext<TaskManagerDbContext>(options =>
 {
@@ -21,6 +28,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 //Services
 builder.Services.AddScoped<ManagedTaskService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
 
 
 builder.Services.AddControllers();
@@ -32,7 +40,7 @@ builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<ForbiddenExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 var app = builder.Build();
-app.UseExceptionHandler();
+app.UseExceptionHandler(o => { });
 
 if (app.Environment.IsDevelopment())
 {
@@ -41,9 +49,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
