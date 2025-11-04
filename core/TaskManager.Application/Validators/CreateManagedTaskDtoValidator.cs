@@ -25,7 +25,7 @@ namespace TaskManager.Application.Validators
 
             RuleFor(t => t.EstimatedHours)
                 .GreaterThan(0).WithMessage("Estimated hours must be greater than 0.")
-                .LessThanOrEqualTo(500).WithMessage("Actual hours must be less than 500 hours")
+                .LessThanOrEqualTo(500).WithMessage("Estimated hours must be less than or equal to 500 hours")
                 .When(t => t.EstimatedHours.HasValue);
         }
     }

@@ -4,13 +4,9 @@ using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Infrastructure.Repositories
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
     {
-        private readonly TaskManagerDbContext _dbContext;
-        public UserRepository(TaskManagerDbContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly TaskManagerDbContext _dbContext = dbContext;
         public async Task<bool> AddAsync(User user)
         {
             if (user == null)
@@ -71,7 +67,7 @@ namespace TaskManager.Infrastructure.Repositories
 
         public async Task<string?> GetUserPasswordHashByUsernameAsync(string username)
         {
-            return await _dbContext.Users.AsNoTracking().Where(u => u.Username == username).Select(u => u.PasswordHash).SingleOrDefaultAsync();
+            return await _dbContext.Users.AsNoTracking().Where(u => u.Username == username).Select(u => u.PasswordHash).FirstOrDefaultAsync();
         }
     }
 }

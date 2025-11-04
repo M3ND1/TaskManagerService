@@ -8,6 +8,7 @@ namespace TaskManager.Application.Validators
         public const string UsernamePattern = @"^[a-zA-Z0-9_.-]+$";
         public const string NamePattern = @"^[a-zA-ZÀ-ÿ\s'-]+$";
         public const string PhonePattern = @"^\d+$";
+        public const string SpecialCharacterPattern = @"[][""!@$%^&*(){}:;<>,.?/+_=|'~\\-]";
 
         public static IRuleBuilderOptions<T, string> ApplyPasswordRules<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
@@ -17,7 +18,7 @@ namespace TaskManager.Application.Validators
                 .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
                 .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter.")
                 .Matches(@"\d").WithMessage("Password must contain at least one digit.")
-                .Matches(@"[][""!@$%^&*(){}:;<>,.?/+_=|'~\\-]").WithMessage("Password must contain at least one special character.")
+                .Matches(SpecialCharacterPattern).WithMessage("Password must contain at least one special character.")
                 .Must(ValidationHelpers.BeAStrongPassword).WithMessage("Please provide strong password for your account security.");
         }
         public static IRuleBuilderOptions<T, string> ApplyEmailRules<T>(this IRuleBuilder<T, string> ruleBuilder)

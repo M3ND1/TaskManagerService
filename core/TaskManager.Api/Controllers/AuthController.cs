@@ -17,9 +17,6 @@ namespace TaskManager.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
         {
-            if (await _userService.CheckIfEmailExists(createUserDto.Email))
-                return BadRequest(new { message = "Email already exists in database" });
-
             var result = await _userService.CreateUserAsync(createUserDto);
             if (result == null) return BadRequest(new { message = "Something went wrong while creating user" });
 
@@ -43,10 +40,13 @@ namespace TaskManager.Api.Controllers
         public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
         {
             var hashedPassword = await _userService.GetUserHashedPasswordByUsernameAsync(userLoginDto.Username);
-            if (hashedPassword == null)
-                return BadRequest(new { message = "Invalid email or password." });
 
-            if (!_passwordService.VerifyPassword(userLoginDto.Password!, hashedPassword))
+            var superHardHash = "$argon2id$v=19$m=65536...$IWILLMOVEITTOCONFIGURATIONLATER";
+            var hashToVerify = hashedPassword ?? superHardHash;
+
+
+            bool isCorrect = !_passwordService.VerifyPassword(userLoginDto.Password, hashToVerify);
+            if (hashedPassword == null || !isCorrect)
                 return BadRequest(new { message = "Invalid email or password." });
 
             // var token = GenerateJwtToken(user);
