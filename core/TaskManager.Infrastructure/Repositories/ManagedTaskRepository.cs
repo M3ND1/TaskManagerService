@@ -4,13 +4,10 @@ using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Infrastructure.Repositories
 {
-    public class ManagedTaskRepository : IManagedTaskRepository
+    public class ManagedTaskRepository(TaskManagerDbContext dbContext) : IManagedTaskRepository
     {
-        private readonly TaskManagerDbContext _dbContext;
-        public ManagedTaskRepository(TaskManagerDbContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly TaskManagerDbContext _dbContext = dbContext;
+
         public async Task<bool> AddAsync(ManagedTask task)
         {
             await _dbContext.ManagedTasks.AddAsync(task);
@@ -26,18 +23,9 @@ namespace TaskManager.Infrastructure.Repositories
         }
         public async Task<bool> UpdateAsync(ManagedTask mappedTask)
         {
-            try
-            {
-                _dbContext.ManagedTasks.Update(mappedTask);
-                var affectedRows = await _dbContext.SaveChangesAsync();
-                return affectedRows > 0;
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                //Affected 0 rows means that the entity to update does not exist
-                //TODO: Log exception
-                return false;
-            }
+            _dbContext.ManagedTasks.Update(mappedTask);
+            var affectedRows = await _dbContext.SaveChangesAsync();
+            return affectedRows > 0;
         }
         public async Task<bool> DeleteAsync(int taskId)
         {

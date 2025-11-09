@@ -3,56 +3,62 @@ using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
 using TaskManager.Core.Interfaces;
 
-namespace TaskManager.Api.Controllers
+namespace TaskManager.Api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController(UserService userService, IPasswordService passwordService, IJwtTokenGenerator jwtTokenGenerator, IConfiguration configuration) : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AuthController(UserService userService, IPasswordService passwordService) : ControllerBase
+    private readonly UserService _userService = userService;
+    private readonly IPasswordService _passwordService = passwordService;
+    private readonly IJwtTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;
+    private readonly IConfiguration _configuration = configuration;
+
+    [HttpPost("register")]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
     {
-        private readonly UserService _userService = userService;
-        private readonly IPasswordService _passwordService = passwordService;
+        var userResponse = await _userService.CreateUserAsync(createUserDto);
+        if (userResponse == null) return BadRequest(new { message = "Something went wrong while creating user" });
 
-        [HttpPost("register")]
-        [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
-        {
-            var result = await _userService.CreateUserAsync(createUserDto);
-            if (result == null) return BadRequest(new { message = "Something went wrong while creating user" });
+        return CreatedAtAction(nameof(GetUser), new { userResponse.Id }, userResponse);
+    }
 
-            return CreatedAtAction(nameof(GetUser), new { result.Id }, result);
-        }
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUser(int id)
+    {
+        var userResponseDto = await _userService.GetUserAsync(id);
+        if (userResponseDto == null)
+            return NotFound(new { message = "User not found." });
 
-        [HttpGet("{id}")]
-        [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetUser(int id)
-        {
-            var userResponseDto = await _userService.GetUserAsync(id);
-            if (userResponseDto == null)
-                return NotFound(new { message = "User not found." });
+        return Ok(userResponseDto);
+    }
+    [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new { message = "Invalid user date entered." });
 
-            return Ok(userResponseDto);
-        }
-        [HttpPost("login")]
-        [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
-        {
-            var hashedPassword = await _userService.GetUserHashedPasswordByUsernameAsync(userLoginDto.Username);
+        var hashedPassword = await _userService.GetUserHashedPasswordByUsernameAsync(userLoginDto.Email);
+        var superHardHash = _configuration.GetSection("SuperHardHash");
+        var hashToVerify = hashedPassword ?? superHardHash["Secret"];
 
-            var superHardHash = "$argon2id$v=19$m=65536...$IWILLMOVEITTOCONFIGURATIONLATER";
-            var hashToVerify = hashedPassword ?? superHardHash;
+        bool isPasswordValid = _passwordService.VerifyPassword(userLoginDto.Password, hashToVerify);
+        if (hashedPassword == null || !isPasswordValid)
+            return BadRequest(new { message = "Invalid email or password." });
 
+        var user = await _userService.GetByEmailAsync(userLoginDto.Email);
 
-            bool isCorrect = !_passwordService.VerifyPassword(userLoginDto.Password, hashToVerify);
-            if (hashedPassword == null || !isCorrect)
-                return BadRequest(new { message = "Invalid email or password." });
+        var token = _jwtTokenGenerator.GenerateToken(user.Id, user.Email, user.Role);
+        var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
+        //new table tokens
+        // _userService.SaveRefreshTokenAsync(userResponse.Id, resfreshToken);
 
-            // var token = GenerateJwtToken(user);
-            // return Ok(new { "token", new { user.Id, user.Email, user.Username } });
-
-            return Ok();
-        }
+        return Ok(new { token, refreshToken });
     }
 }
