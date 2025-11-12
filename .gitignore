@@ -55,3 +55,6 @@ Migrations/*Snapshot.cs
 TestResult.xml
 nunit-*.xml
 .fake
+code_review.md
+REVIEW_RESULTS.md
+diff.txt

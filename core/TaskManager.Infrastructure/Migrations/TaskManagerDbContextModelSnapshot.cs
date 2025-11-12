@@ -17,7 +17,7 @@ namespace TaskManager.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -177,11 +177,6 @@ namespace TaskManager.Infrastructure.Migrations
                         .HasColumnType("character varying(150)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("PasswordSalt")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
