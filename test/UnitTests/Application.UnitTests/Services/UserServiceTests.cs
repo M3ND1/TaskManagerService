@@ -33,7 +33,7 @@ namespace Application.UnitTests.Services
         public async Task CreateUserAsync_Should_Return_Dto()
         {
             // Arrange
-            _userRepository.Setup(repo => repo.AddAsync(It.IsAny<User>())).ReturnsAsync(true);
+            _userRepository.Setup(repo => repo.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             var createUserDto = new CreateUserDto
             {
                 FirstName = "John",
@@ -61,7 +61,7 @@ namespace Application.UnitTests.Services
         public async Task CreateUserAsync_Should_Return_Null_When_Repository_Fails()
         {
             // Arrange
-            _userRepository.Setup(repo => repo.AddAsync(It.IsAny<User>())).ReturnsAsync(false);
+            _userRepository.Setup(repo => repo.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
             var createUserDto = new CreateUserDto
             {
                 FirstName = "John",
@@ -92,7 +92,7 @@ namespace Application.UnitTests.Services
                 PhoneNumber = "987-654-3210"
             };
             User? capturedUser = null;
-            _userRepository.Setup(x => x.AddAsync(It.IsAny<User>()))
+            _userRepository.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
                 .Callback<User>(user => capturedUser = user)
                 .ReturnsAsync(true);
 
@@ -124,7 +124,7 @@ namespace Application.UnitTests.Services
                 CreatedAt = DateTime.UtcNow,
                 LastLoginAt = DateTime.UtcNow.AddDays(-1)
             };
-            _userRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(user);
+            _userRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(user);
 
             // Act
             var result = await _userService.GetUserAsync(1);
@@ -147,7 +147,7 @@ namespace Application.UnitTests.Services
         public async Task GetUserAsync_Should_Return_Null_When_No_User(int userId)
         {
             // Arrange
-            _userRepository.Setup(x => x.GetAsync(userId)).ReturnsAsync((User?)null);
+            _userRepository.Setup(x => x.GetAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
 
             // Act
             var result = await _userService.GetUserAsync(userId);
@@ -169,8 +169,8 @@ namespace Application.UnitTests.Services
                 UpdatedAt = DateTime.UtcNow.AddDays(-1)
             };
             User? capturedUser = null;
-            _userRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingUser);
-            _userRepository.Setup(x => x.UpdateAsync(It.IsAny<User>()))
+            _userRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingUser);
+            _userRepository.Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
                 .Callback<User>(user => capturedUser = user)
                 .ReturnsAsync(true);
 
@@ -192,14 +192,14 @@ namespace Application.UnitTests.Services
             capturedUser.Email.Should().Be("new.email@example.com");
             capturedUser.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             capturedUser.UpdatedAt.Should().BeOnOrAfter(existingUser.UpdatedAt.Value);
-            _userRepository.Verify(x => x.UpdateAsync(It.Is<User>(u => u.FirstName == "New Name" && u.Email == "new.email@example.com")), Times.Once);
+            _userRepository.Verify(x => x.UpdateAsync(It.Is<User>(u => u.FirstName == "New Name" && u.Email == "new.email@example.com"), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task UpdateUserAsync_Should_Return_False_When_User_Not_Found()
         {
             // Arrange
-            _userRepository.Setup(x => x.GetAsync(999)).ReturnsAsync((User?)null);
+            _userRepository.Setup(x => x.GetAsync(999, It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
             var updateDto = new UpdateUserDto
             {
                 FirstName = "Updated Name"
@@ -210,7 +210,7 @@ namespace Application.UnitTests.Services
 
             // Assert
             result.Should().BeFalse();
-            _userRepository.Verify(x => x.UpdateAsync(It.IsAny<User>()), Times.Never);
+            _userRepository.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -223,8 +223,8 @@ namespace Application.UnitTests.Services
                 FirstName = "Name",
                 Email = "existing.email@example.com"
             };
-            _userRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingUser);
-            _userRepository.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(false);
+            _userRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingUser);
+            _userRepository.Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             var updateDto = new UpdateUserDto
             {
@@ -236,7 +236,7 @@ namespace Application.UnitTests.Services
 
             // Assert
             result.Should().BeFalse();
-            _userRepository.Verify(x => x.UpdateAsync(It.IsAny<User>()), Times.Once);
+            _userRepository.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -253,8 +253,8 @@ namespace Application.UnitTests.Services
                 PhoneNumber = "000-000-0000"
             };
             User? capturedUser = null;
-            _userRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingUser);
-            _userRepository.Setup(x => x.UpdateAsync(It.IsAny<User>()))
+            _userRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingUser);
+            _userRepository.Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
                 .Callback<User>(user => capturedUser = user)
                 .ReturnsAsync(true);
 
@@ -289,31 +289,31 @@ namespace Application.UnitTests.Services
                 Id = 1,
                 FirstName = "John"
             };
-            _userRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingUser);
-            _userRepository.Setup(x => x.DeleteAsync(1)).ReturnsAsync(true);
+            _userRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingUser);
+            _userRepository.Setup(x => x.DeleteAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
             // Act
             var result = await _userService.DeleteUserAsync(1);
 
             // Assert
             result.Should().BeTrue();
-            _userRepository.Verify(x => x.GetAsync(1), Times.Once);
-            _userRepository.Verify(x => x.DeleteAsync(1), Times.Once);
+            _userRepository.Verify(x => x.GetAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+            _userRepository.Verify(x => x.DeleteAsync(1, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task DeleteUserAsync_Should_Return_False_When_User_Not_Found()
         {
             // Arrange
-            _userRepository.Setup(x => x.GetAsync(999)).ReturnsAsync((User?)null);
+            _userRepository.Setup(x => x.GetAsync(999, It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
 
             // Act
             var result = await _userService.DeleteUserAsync(999);
 
             // Assert
             result.Should().BeFalse();
-            _userRepository.Verify(x => x.GetAsync(999), Times.Once);
-            _userRepository.Verify(x => x.DeleteAsync(It.IsAny<int>()), Times.Never);
+            _userRepository.Verify(x => x.GetAsync(999, It.IsAny<CancellationToken>()), Times.Once);
+            _userRepository.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -325,16 +325,16 @@ namespace Application.UnitTests.Services
                 Id = 1,
                 FirstName = "John"
             };
-            _userRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingUser);
-            _userRepository.Setup(x => x.DeleteAsync(1)).ReturnsAsync(false);
+            _userRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingUser);
+            _userRepository.Setup(x => x.DeleteAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             // Act
             var result = await _userService.DeleteUserAsync(1);
 
             // Assert
             result.Should().BeFalse();
-            _userRepository.Verify(x => x.GetAsync(1), Times.Once);
-            _userRepository.Verify(x => x.DeleteAsync(1), Times.Once);
+            _userRepository.Verify(x => x.GetAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+            _userRepository.Verify(x => x.DeleteAsync(1, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -344,14 +344,14 @@ namespace Application.UnitTests.Services
         public async Task DeleteUserAsync_Should_Return_False_For_Invalid_User_Ids(int invalidId)
         {
             // Arrange
-            _userRepository.Setup(x => x.GetAsync(invalidId)).ReturnsAsync((User?)null);
+            _userRepository.Setup(x => x.GetAsync(invalidId, It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
 
             // Act
             var result = await _userService.DeleteUserAsync(invalidId);
 
             // Assert
             result.Should().BeFalse();
-            _userRepository.Verify(x => x.DeleteAsync(It.IsAny<int>()), Times.Never);
+            _userRepository.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

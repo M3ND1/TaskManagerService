@@ -17,9 +17,9 @@ public class AuthController(UserService userService, IPasswordService passwordSe
     [HttpPost("register")]
     [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto, CancellationToken cancellationToken)
     {
-        var userResponse = await _userService.CreateUserAsync(createUserDto);
+        var userResponse = await _userService.CreateUserAsync(createUserDto, cancellationToken);
         if (userResponse == null) return BadRequest(new { message = "Something went wrong while creating user" });
 
         return CreatedAtAction(nameof(GetUser), new { userResponse.Id }, userResponse);
@@ -28,9 +28,9 @@ public class AuthController(UserService userService, IPasswordService passwordSe
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetUser(int id)
+    public async Task<IActionResult> GetUser(int id, CancellationToken cancellationToken)
     {
-        var userResponseDto = await _userService.GetUserAsync(id);
+        var userResponseDto = await _userService.GetUserAsync(id, cancellationToken);
         if (userResponseDto == null)
             return NotFound(new { message = "User not found." });
 

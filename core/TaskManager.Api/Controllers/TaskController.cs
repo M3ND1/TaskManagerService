@@ -15,9 +15,9 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     [HttpPost]
     [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateTask([FromBody] CreateManagedTaskDto createManagedTaskDto, int userId)
+    public async Task<IActionResult> CreateTask([FromBody] CreateManagedTaskDto createManagedTaskDto, int userId, CancellationToken cancellationToken)
     {
-        ManagedTaskResponseDto? result = await _managedTaskService.CreateTaskAsync(createManagedTaskDto, userId);
+        ManagedTaskResponseDto? result = await _managedTaskService.CreateTaskAsync(createManagedTaskDto, userId, userId, cancellationToken);
         if (result == null)
             return BadRequest(new { message = "Could not create task" });
 
@@ -28,9 +28,9 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTask(int id)
+    public async Task<IActionResult> GetTask(int id, CancellationToken cancellationToken)
     {
-        var managedTask = await _managedTaskService.GetTaskAsync(id);
+        var managedTask = await _managedTaskService.GetTaskAsync(id, cancellationToken);
         return managedTask != null ? Ok(managedTask) : NotFound(new { message = "Something went wrong" });
     }
 
@@ -39,9 +39,9 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     [ProducesResponseType(typeof(UpdateManagedTaskDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(UpdateManagedTaskDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateManagedTaskDto updateManagedTaskDto)
+    public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateManagedTaskDto updateManagedTaskDto, CancellationToken cancellationToken)
     {
-        bool success = await _managedTaskService.UpdateTaskAsync(id, updateManagedTaskDto);
+        bool success = await _managedTaskService.UpdateTaskAsync(id, updateManagedTaskDto, cancellationToken);
 
         if (!success) return NotFound(new { message = "Task not found" });
 
@@ -52,9 +52,9 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteTask(int id)
+    public async Task<IActionResult> DeleteTask(int id, CancellationToken cancellationToken)
     {
-        bool success = await _managedTaskService.DeleteTaskAsync(id);
+        bool success = await _managedTaskService.DeleteTaskAsync(id, cancellationToken);
         if (!success)
             return NotFound(new { message = "Could not delete task with this id" });
 

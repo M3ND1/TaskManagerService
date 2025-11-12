@@ -31,7 +31,7 @@ namespace Application.UnitTests.Services
         public async Task CreateTaskAsync_Should_Return_Dto()
         {
             //Arrange
-            _managedTaskRepository.Setup(repo => repo.AddAsync(It.IsAny<ManagedTask>())).ReturnsAsync(true);
+            _managedTaskRepository.Setup(repo => repo.AddAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
             var createManagedTaskDto = new CreateManagedTaskDto
             {
                 Title = "create",
@@ -55,7 +55,7 @@ namespace Application.UnitTests.Services
         public async Task CreateTaskAsync_Should_Return_Null_When_Repository_Fails()
         {
             //Arrange
-            _managedTaskRepository.Setup(repo => repo.AddAsync(It.IsAny<ManagedTask>())).ReturnsAsync(false);
+            _managedTaskRepository.Setup(repo => repo.AddAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
             var createManagedTaskDto = new CreateManagedTaskDto
             {
                 Title = "create",
@@ -79,7 +79,7 @@ namespace Application.UnitTests.Services
                 EstimatedHours = 8
             };
             ManagedTask? capturedTask = null;
-            _managedTaskRepository.Setup(x => x.AddAsync(It.IsAny<ManagedTask>()))
+            _managedTaskRepository.Setup(x => x.AddAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()))
                 .Callback<ManagedTask>(task => capturedTask = task)
                 .ReturnsAsync(true);
 
@@ -103,7 +103,7 @@ namespace Application.UnitTests.Services
                 Priority = PriorityLevel.Medium
             };
             ManagedTask? capturedTask = null;
-            _managedTaskRepository.Setup(x => x.AddAsync(It.IsAny<ManagedTask>()))
+            _managedTaskRepository.Setup(x => x.AddAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()))
                 .Callback<ManagedTask>(task => capturedTask = task)
                 .ReturnsAsync(true);
 
@@ -129,7 +129,7 @@ namespace Application.UnitTests.Services
                 IsCompleted = false,
                 CreatedById = 5
             };
-            _managedTaskRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(managedTask);
+            _managedTaskRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(managedTask);
 
             //Act
             var result = await _managedTaskService.GetTaskAsync(1);
@@ -149,7 +149,7 @@ namespace Application.UnitTests.Services
         [InlineData(999999)]
         public async Task GetTaskAsync_Should_Return_Null_When_No_ManagedTask(int taskId)
         {
-            _managedTaskRepository.Setup(x => x.GetAsync(taskId)).ReturnsAsync((ManagedTask?)null);
+            _managedTaskRepository.Setup(x => x.GetAsync(taskId, It.IsAny<CancellationToken>())).ReturnsAsync((ManagedTask?)null);
             //Act
             var result = await _managedTaskService.GetTaskAsync(taskId);
             //Assert
@@ -165,7 +165,7 @@ namespace Application.UnitTests.Services
                 Description = "Description1",
                 AssignedTo = new User { Id = 1, FirstName = "John" }
             };
-            _managedTaskRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(managedTaskReturn);
+            _managedTaskRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(managedTaskReturn);
             var result = await _managedTaskService.GetTaskAsync(1);
 
             result.Should().NotBe(null);
@@ -185,8 +185,8 @@ namespace Application.UnitTests.Services
                 UpdatedAt = DateTime.UtcNow
             };
             ManagedTask? capturedTask = null;
-            _managedTaskRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingTask);
-            _managedTaskRepository.Setup(x => x.UpdateAsync(It.IsAny<ManagedTask>()))
+            _managedTaskRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingTask);
+            _managedTaskRepository.Setup(x => x.UpdateAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()))
                 .Callback<ManagedTask>(task => capturedTask = task)
                 .ReturnsAsync(true);
 
@@ -206,14 +206,14 @@ namespace Application.UnitTests.Services
             capturedTask.Description.Should().Be("New Description");
             capturedTask.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             capturedTask.UpdatedAt.Should().BeOnOrAfter(existingTask.UpdatedAt.Value);
-            _managedTaskRepository.Verify(x => x.UpdateAsync(It.Is<ManagedTask>(t => t.Title == "New Title" && t.Description == "New Description")), Times.Once);
+            _managedTaskRepository.Verify(x => x.UpdateAsync(It.Is<ManagedTask>(t => t.Title == "New Title" && t.Description == "New Description"), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task UpdateTaskAsync_Should_Return_False_When_Task_Not_Found()
         {
             // Arrange
-            _managedTaskRepository.Setup(x => x.GetAsync(999)).ReturnsAsync((ManagedTask?)null);
+            _managedTaskRepository.Setup(x => x.GetAsync(999, It.IsAny<CancellationToken>())).ReturnsAsync((ManagedTask?)null);
             var updateDto = new UpdateManagedTaskDto
             {
                 Title = "Updated Title"
@@ -224,7 +224,7 @@ namespace Application.UnitTests.Services
 
             // Assert
             result.Should().BeFalse();
-            _managedTaskRepository.Verify(x => x.UpdateAsync(It.IsAny<ManagedTask>()), Times.Never);
+            _managedTaskRepository.Verify(x => x.UpdateAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -237,8 +237,8 @@ namespace Application.UnitTests.Services
                 Title = "Existing Title",
                 Description = "Existing Description"
             };
-            _managedTaskRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingTask);
-            _managedTaskRepository.Setup(x => x.UpdateAsync(It.IsAny<ManagedTask>())).ReturnsAsync(false);
+            _managedTaskRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingTask);
+            _managedTaskRepository.Setup(x => x.UpdateAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             var updateDto = new UpdateManagedTaskDto
             {
@@ -250,7 +250,7 @@ namespace Application.UnitTests.Services
 
             // Assert
             result.Should().BeFalse();
-            _managedTaskRepository.Verify(x => x.UpdateAsync(It.IsAny<ManagedTask>()), Times.Once);
+            _managedTaskRepository.Verify(x => x.UpdateAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -267,8 +267,8 @@ namespace Application.UnitTests.Services
                 EstimatedHours = 2
             };
             ManagedTask? capturedTask = null;
-            _managedTaskRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingTask);
-            _managedTaskRepository.Setup(x => x.UpdateAsync(It.IsAny<ManagedTask>()))
+            _managedTaskRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingTask);
+            _managedTaskRepository.Setup(x => x.UpdateAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()))
                 .Callback<ManagedTask>(task => capturedTask = task)
                 .ReturnsAsync(true);
 
@@ -303,16 +303,16 @@ namespace Application.UnitTests.Services
                 Id = 1,
                 Title = "Task to Delete"
             };
-            _managedTaskRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingTask);
-            _managedTaskRepository.Setup(x => x.DeleteAsync(1)).ReturnsAsync(true);
+            _managedTaskRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingTask);
+            _managedTaskRepository.Setup(x => x.DeleteAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
             // Act
             var result = await _managedTaskService.DeleteTaskAsync(1);
 
             // Assert
             result.Should().BeTrue();
-            _managedTaskRepository.Verify(x => x.GetAsync(1), Times.Once);
-            _managedTaskRepository.Verify(x => x.DeleteAsync(1), Times.Once);
+            _managedTaskRepository.Verify(x => x.GetAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+            _managedTaskRepository.Verify(x => x.DeleteAsync(1, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -324,16 +324,16 @@ namespace Application.UnitTests.Services
                 Id = 1,
                 Title = "Task to Delete"
             };
-            _managedTaskRepository.Setup(x => x.GetAsync(1)).ReturnsAsync(existingTask);
-            _managedTaskRepository.Setup(x => x.DeleteAsync(1)).ReturnsAsync(false);
+            _managedTaskRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingTask);
+            _managedTaskRepository.Setup(x => x.DeleteAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
             // Act
             var result = await _managedTaskService.DeleteTaskAsync(1);
 
             // Assert
             result.Should().BeFalse();
-            _managedTaskRepository.Verify(x => x.GetAsync(1), Times.Once);
-            _managedTaskRepository.Verify(x => x.DeleteAsync(1), Times.Once);
+            _managedTaskRepository.Verify(x => x.GetAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+            _managedTaskRepository.Verify(x => x.DeleteAsync(1, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -344,14 +344,14 @@ namespace Application.UnitTests.Services
         public async Task DeleteTaskAsync_Should_Return_False_For_Invalid_Task_Ids(int invalidId)
         {
             // Arrange
-            _managedTaskRepository.Setup(x => x.GetAsync(invalidId)).ReturnsAsync((ManagedTask?)null);
+            _managedTaskRepository.Setup(x => x.GetAsync(invalidId, It.IsAny<CancellationToken>())).ReturnsAsync((ManagedTask?)null);
 
             // Act
             var result = await _managedTaskService.DeleteTaskAsync(invalidId);
 
             // Assert
             result.Should().BeFalse();
-            _managedTaskRepository.Verify(x => x.DeleteAsync(It.IsAny<int>()), Times.Never);
+            _managedTaskRepository.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
     }
