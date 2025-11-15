@@ -93,7 +93,7 @@ namespace Application.UnitTests.Services
             };
             User? capturedUser = null;
             _userRepository.Setup(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-                .Callback<User>(user => capturedUser = user)
+                .Callback<User, CancellationToken>((user, cancellationToken) => capturedUser = user)
                 .ReturnsAsync(true);
 
             // Act
@@ -171,7 +171,7 @@ namespace Application.UnitTests.Services
             User? capturedUser = null;
             _userRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingUser);
             _userRepository.Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-                .Callback<User>(user => capturedUser = user)
+                .Callback<User, CancellationToken>((user, cancellationToken) => capturedUser = user)
                 .ReturnsAsync(true);
 
             var updateDto = new UpdateUserDto
@@ -255,7 +255,7 @@ namespace Application.UnitTests.Services
             User? capturedUser = null;
             _userRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingUser);
             _userRepository.Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-                .Callback<User>(user => capturedUser = user)
+                .Callback<User, CancellationToken>((user, cancellationToken) => capturedUser = user)
                 .ReturnsAsync(true);
 
             var updateDto = new UpdateUserDto

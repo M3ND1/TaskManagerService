@@ -80,7 +80,7 @@ namespace Application.UnitTests.Services
             };
             ManagedTask? capturedTask = null;
             _managedTaskRepository.Setup(x => x.AddAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()))
-                .Callback<ManagedTask>(task => capturedTask = task)
+                .Callback<ManagedTask, CancellationToken>((task, cancellationToken) => capturedTask = task)
                 .ReturnsAsync(true);
 
             //Act
@@ -104,7 +104,7 @@ namespace Application.UnitTests.Services
             };
             ManagedTask? capturedTask = null;
             _managedTaskRepository.Setup(x => x.AddAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()))
-                .Callback<ManagedTask>(task => capturedTask = task)
+                .Callback<ManagedTask, CancellationToken>((task, cancellationToken) => capturedTask = task)
                 .ReturnsAsync(true);
 
             //Act
@@ -187,7 +187,7 @@ namespace Application.UnitTests.Services
             ManagedTask? capturedTask = null;
             _managedTaskRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingTask);
             _managedTaskRepository.Setup(x => x.UpdateAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()))
-                .Callback<ManagedTask>(task => capturedTask = task)
+                .Callback<ManagedTask, CancellationToken>((task, cancellationToken) => capturedTask = task)
                 .ReturnsAsync(true);
 
             var updateDto = new UpdateManagedTaskDto
@@ -269,7 +269,7 @@ namespace Application.UnitTests.Services
             ManagedTask? capturedTask = null;
             _managedTaskRepository.Setup(x => x.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingTask);
             _managedTaskRepository.Setup(x => x.UpdateAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()))
-                .Callback<ManagedTask>(task => capturedTask = task)
+                .Callback<ManagedTask, CancellationToken>((task, cancellationToken) => capturedTask = task)
                 .ReturnsAsync(true);
 
             var updateDto = new UpdateManagedTaskDto

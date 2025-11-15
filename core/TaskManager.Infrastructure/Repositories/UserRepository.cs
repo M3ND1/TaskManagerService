@@ -17,7 +17,7 @@ public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
     }
 
     public async Task<User?> GetAsync(int id, CancellationToken cancellationToken = default)
-        => await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        => await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
 
     public async Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default)
         => await _dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email, cancellationToken);
@@ -26,21 +26,11 @@ public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
         => await _dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email && u.Id != userId, cancellationToken);
     public async Task<bool> UpdateAsync(User user, CancellationToken cancellationToken = default)
     {
-        //refactor to use Update only, business logic to be handled in service layer
         if (user == null)
             return false;
-        if (!await _dbContext.Users.AnyAsync(u => u.Id == user.Id, cancellationToken))
-            return false;
-
-        int rowsAffected = await _dbContext.Users.Where(u => u.Id == user.Id).ExecuteUpdateAsync(u => u
-            .SetProperty(u => u.FirstName, user.FirstName)
-            .SetProperty(u => u.LastName, user.LastName)
-            .SetProperty(u => u.Email, user.Email)
-            .SetProperty(u => u.PhoneNumber, user.PhoneNumber)
-            .SetProperty(u => u.Username, user.Username)
-            .SetProperty(u => u.UpdatedAt, DateTime.UtcNow), cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        return rowsAffected > 0;
+        _dbContext.Users.Update(user);
+        int affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
+        return affectedRows > 0;
     }
 
     public async Task<bool> DeleteAsync(int userId, CancellationToken cancellationToken = default)

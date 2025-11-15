@@ -9,7 +9,7 @@ namespace TaskManager.Application.Validators
         {
             RuleFor(u => u.Email)
                 .EmailAddress().WithMessage("Please enter a valid email address.")
-                .Matches(ValidationRules.EmailPattern).WithMessage("Please provide correct email ex: test@correctMail.com")
+                .WithMessage("Please provide correct email ex: test@correctMail.com")
                 .When(u => !string.IsNullOrEmpty(u.Email));
 
             RuleFor(u => u.Username)

@@ -54,14 +54,14 @@ namespace TaskManager.Infrastructure.IntegrationTests
         }
 
         [Fact]
-        public async Task AddAsync_WithCancelledToken_ThrowsOperationCancelledException()
+        public async Task AddAsync_WithCancelledToken_ThrowsTaskCanceledException()
         {
             // Arrange
             var user = new User { FirstName = "Test", LastName = "User", Email = "test@test.com", Username = "testuser", PasswordHash = "hash" };
             var cancellationToken = new CancellationToken(canceled: true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<OperationCanceledException>(
+            await Assert.ThrowsAsync<TaskCanceledException>(
                 () => _userRepository.AddAsync(user, cancellationToken)
             );
         }

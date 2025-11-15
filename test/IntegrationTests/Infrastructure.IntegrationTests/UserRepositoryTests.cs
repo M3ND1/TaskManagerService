@@ -1,9 +1,7 @@
 
-using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using TaskManager.Core.Entities;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Repositories;
@@ -125,10 +123,10 @@ public class UserRepositoryTests : IDisposable
         result.Should().BeFalse();
     }
     [Fact]
-    public async Task UpdateAsync_Should_Return_False_When_User_Is_Empty()
+    public async Task UpdateAsync_Should_Throw_DbUpdateException_When_User_Is_Empty()
     {
-        var result = await _repository.UpdateAsync(new User());
-        result.Should().BeFalse();
+        var result = async () => await _repository.UpdateAsync(new User());
+        await result.Should().ThrowAsync<DbUpdateException>();
     }
 
     [Theory]

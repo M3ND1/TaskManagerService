@@ -54,6 +54,7 @@ public class UserService
 
     public async Task<bool> UpdateUserAsync(int id, UpdateUserDto userDto, CancellationToken cancellationToken = default)
     {
+        if (id < 0) return false;
         var user = await _userRepository.GetAsync(id, cancellationToken);
         if (user == null) return false;
 

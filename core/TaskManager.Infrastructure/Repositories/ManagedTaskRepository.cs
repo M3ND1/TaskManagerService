@@ -25,9 +25,18 @@ namespace TaskManager.Infrastructure.Repositories
 
         public async Task<bool> UpdateAsync(ManagedTask mappedTask, CancellationToken cancellationToken = default)
         {
-            _dbContext.ManagedTasks.Update(mappedTask);
-            var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
-            return affectedRows > 0;
+            if (mappedTask == null) return false;
+
+            try
+            {
+                _dbContext.ManagedTasks.Update(mappedTask);
+                var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
+                return affectedRows > 0;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return false;
+            }
         }
 
         public async Task<bool> DeleteAsync(int taskId, CancellationToken cancellationToken = default)
