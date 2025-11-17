@@ -1,9 +1,3 @@
-namespace TaskManager.Application.DTOs
-{
-    public class UserLoginDto
-    {
+namespace TaskManager.Application.DTOs;
 
-        public required string Email { get; set; }
-        public required string Password { get; set; }
-    }
-}
+public sealed record UserLoginDto(string Email, string Password);

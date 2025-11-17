@@ -17,4 +17,5 @@ public class User
 
     public virtual ICollection<ManagedTask>? AssignedTasks { get; set; }
     public virtual ICollection<ManagedTask>? CreatedTasks { get; set; }
+    public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
 }

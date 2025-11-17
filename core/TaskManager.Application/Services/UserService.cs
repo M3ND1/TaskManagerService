@@ -5,17 +5,13 @@ using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Application.Services;
 
-public class UserService
+public class UserService(IUserRepository userRepository, IMapper mapper, IPasswordService passwordService, IRefreshTokenRepository refreshTokenRepository)
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IMapper _mapper;
-    private readonly IPasswordService _passwordService;
-    public UserService(IUserRepository userRepository, IMapper mapper, IPasswordService passwordService)
-    {
-        _userRepository = userRepository;
-        _mapper = mapper;
-        _passwordService = passwordService;
-    }
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IMapper _mapper = mapper;
+    private readonly IPasswordService _passwordService = passwordService;
+    private readonly IRefreshTokenRepository _refreshTokenRepository = refreshTokenRepository;
+
     public async Task<UserResponseDto?> CreateUserAsync(CreateUserDto userDto, CancellationToken cancellationToken = default)
     {
         if (await _userRepository.EmailExistsAsync(userDto.Email, cancellationToken))
@@ -38,6 +34,7 @@ public class UserService
     {
         return await _userRepository.EmailExistsAsync(email, cancellationToken);
     }
+
     public async Task<UserResponseDto?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         if (await CheckIfEmailExists(email, cancellationToken) == false) return null;
@@ -67,5 +64,18 @@ public class UserService
     {
         var user = await _userRepository.GetAsync(id, cancellationToken);
         return user == null ? false : await _userRepository.DeleteAsync(id, cancellationToken);
+    }
+
+    public async Task SaveRefreshTokenAsync(int userId, string refreshTokenString, CancellationToken cancellationToken)
+    {
+        var refreshTokenDto = new RefreshTokenDto()
+        {
+            UserId = userId,
+            Token = refreshTokenString,
+            ExpiresAt = DateTime.Now.AddDays(5),
+            Invalidated = false,
+        };
+        RefreshToken refreshToken = _mapper.Map<RefreshToken>(refreshTokenDto);
+        await _refreshTokenRepository.SaveAsync(refreshToken);
     }
 }

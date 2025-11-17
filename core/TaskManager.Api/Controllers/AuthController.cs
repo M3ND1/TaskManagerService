@@ -7,11 +7,11 @@ namespace TaskManager.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(UserService userService, IPasswordService passwordService, IJwtTokenGenerator jwtTokenGenerator, IConfiguration configuration) : ControllerBase
+public class AuthController(UserService userService, IPasswordService passwordService, IJwtTokenGenerator jwtGenerator, IConfiguration configuration) : ControllerBase
 {
     private readonly UserService _userService = userService;
     private readonly IPasswordService _passwordService = passwordService;
-    private readonly IJwtTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;
+    private readonly IJwtTokenGenerator _jwtGenerator = jwtGenerator;
     private readonly IConfiguration _configuration = configuration;
 
     [HttpPost("register")]
@@ -37,9 +37,9 @@ public class AuthController(UserService userService, IPasswordService passwordSe
         return Ok(userResponseDto);
     }
     [HttpPost("login")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+    public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
             return BadRequest(new { message = "Invalid user date entered." });
@@ -54,11 +54,11 @@ public class AuthController(UserService userService, IPasswordService passwordSe
 
         var user = await _userService.GetByEmailAsync(userLoginDto.Email);
 
-        var token = _jwtTokenGenerator.GenerateToken(user.Id, user.Email, user.Role);
-        var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
-        //new table tokens
-        // _userService.SaveRefreshTokenAsync(userResponse.Id, resfreshToken);
+        var token = _jwtGenerator.GenerateToken(user.Id, user.Email, user.Role);
+        var refreshToken = _jwtGenerator.GenerateRefreshToken();
 
-        return Ok(new { token, refreshToken });
+        await _userService.SaveRefreshTokenAsync(user.Id, refreshToken, cancellationToken);
+
+        return Ok(new UserLoginResponseDto(token, refreshToken));
     }
 }

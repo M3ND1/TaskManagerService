@@ -1,5 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
-
 namespace TaskManager.Infrastructure.Authentication;
 
 public sealed class JwtSettings

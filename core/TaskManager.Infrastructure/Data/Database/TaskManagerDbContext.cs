@@ -11,6 +11,7 @@ public class TaskManagerDbContext : DbContext
     public DbSet<ManagedTask> ManagedTasks { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Tag> Tags { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +88,26 @@ public class TaskManagerDbContext : DbContext
             e.HasIndex(t => t.AssignedToId);
             e.HasIndex(t => t.CreatedById);
             e.HasIndex(t => new { t.AssignedToId, t.IsCompleted });
+        });
+
+        modelBuilder.Entity<RefreshToken>(e =>
+        {
+            e.HasKey(rt => rt.Id);
+            e.Property(rt => rt.Token).IsRequired().HasMaxLength(256);
+            e.Property(rt => rt.ExpiryDate).IsRequired();
+            e.Property(rt => rt.Invalidated).IsRequired();
+            e.Property(rt => rt.UserId).IsRequired();
+            e.Property(rt => rt.ReplacedByTokenId).IsRequired(false);
+
+            e.HasOne(rt => rt.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(rt => rt.UserId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(t => t.UserId);
+            e.HasIndex(t => t.ExpiryDate);
+            e.HasIndex(t => t.Token).IsUnique();
         });
     }
 }

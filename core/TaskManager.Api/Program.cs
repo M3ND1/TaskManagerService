@@ -32,6 +32,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 //Repositories
 builder.Services.AddScoped<IManagedTaskRepository, ManagedTaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 //Services
 builder.Services.AddScoped<ManagedTaskService>();
 builder.Services.AddScoped<UserService>();
