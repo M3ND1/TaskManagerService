@@ -2,36 +2,36 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Api.Exceptions.Custom;
 
-namespace TaskManager.Api.Exceptions.Handlers
+namespace TaskManager.Api.Exceptions.Handlers;
+
+internal sealed class ForbiddenExceptionHandler : IExceptionHandler
 {
-    internal sealed class ForbiddenExceptionHandler : IExceptionHandler
+    private readonly ILogger<ForbiddenExceptionHandler> _logger;
+    public ForbiddenExceptionHandler(ILogger<ForbiddenExceptionHandler> logger)
     {
-        private readonly ILogger<ForbiddenExceptionHandler> _logger;
-        public ForbiddenExceptionHandler(ILogger<ForbiddenExceptionHandler> logger)
+        _logger = logger;
+    }
+    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    {
+        if (exception is not ForbiddenException forbiddenException)
         {
-            _logger = logger;
+            return false;
         }
-        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+
+        _logger.LogWarning(forbiddenException, "Forbidden access: {Message}", forbiddenException.Message);
+
+        var problemDetails = new ProblemDetails
         {
-            if (exception is not ForbiddenException forbiddenException)
-            {
-                return false;
-            }
+            Status = StatusCodes.Status403Forbidden,
+            Title = "Forbidden",
+            Detail = forbiddenException.Message
+        };
 
-            _logger.LogWarning(forbiddenException, "Forbidden access: {Message}", forbiddenException.Message);
+        httpContext.Response.StatusCode = problemDetails.Status.Value;
 
-            var problemDetails = new ProblemDetails
-            {
-                Status = StatusCodes.Status403Forbidden,
-                Title = "Forbidden",
-                Detail = forbiddenException.Message
-            };
+        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
-            httpContext.Response.StatusCode = problemDetails.Status.Value;
-
-            await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
-
-            return true;
-        }
+        return true;
     }
 }
+

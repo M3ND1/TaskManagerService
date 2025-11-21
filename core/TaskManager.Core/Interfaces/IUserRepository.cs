@@ -11,6 +11,7 @@ public interface IUserRepository
     Task<bool> UpdateAsync(User user, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
     Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default);
+    Task<bool> UserExistsByUserId(int userId, CancellationToken cancellationToken = default);
     Task<bool> IsEmailTakenByOtherUserAsync(string email, int userId, CancellationToken cancellationToken = default);
     Task<string?> GetUserPasswordHashByUsernameAsync(string username, CancellationToken cancellationToken = default);
 }
