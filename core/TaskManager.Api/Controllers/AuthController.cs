@@ -34,13 +34,14 @@ public class AuthController(UserService userService, IPasswordService passwordSe
         var userResponseDto = await _userService.GetUserAsync(id, cancellationToken) ?? throw new NotFoundException("User not found.");
         return Ok(userResponseDto);
     }
+
     [HttpPost("login")]
     [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
-            throw new BadRequestException("Invalid user date entered.");
+            throw new BadRequestException("Invalid user data entered.");
 
         var hashedPassword = await _userService.GetUserHashedPasswordByUsernameAsync(userLoginDto.Email, cancellationToken);
         var superHardHash = _configuration.GetSection("SuperHardHash");
@@ -50,9 +51,8 @@ public class AuthController(UserService userService, IPasswordService passwordSe
         if (hashedPassword == null || !isPasswordValid)
             throw new BadRequestException("Invalid email or password.");
 
-        var user = await _userService.GetByEmailAsync(userLoginDto.Email, cancellationToken);
-
-        var token = _jwtGenerator.GenerateToken(user.Id, user.Email, user.Role);
+        var user = await _userService.GetByEmailAsync(userLoginDto.Email, cancellationToken) ?? throw new BadRequestException("User does not exist");
+        var token = _jwtGenerator.GenerateToken(user.Id, user.Email!, user.Role);
         var refreshToken = _jwtGenerator.GenerateRefreshToken();
 
         await _userService.SaveRefreshTokenAsync(user.Id, refreshToken, cancellationToken);

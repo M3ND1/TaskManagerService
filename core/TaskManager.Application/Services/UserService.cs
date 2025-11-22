@@ -1,12 +1,20 @@
 using System.Security.Claims;
 using AutoMapper;
+using Microsoft.Extensions.Options;
 using TaskManager.Application.DTOs;
+using TaskManager.Core.Configuration;
 using TaskManager.Core.Entities;
 using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Application.Services;
 
-public class UserService(IUserRepository userRepository, IMapper mapper, IPasswordService passwordService, ITokenValidationService tokenValidationService, IRefreshTokenRepository refreshTokenRepository, IJwtTokenGenerator jwtTokenGenerator)
+public class UserService(IUserRepository userRepository,
+    IMapper mapper,
+    IPasswordService passwordService,
+    ITokenValidationService tokenValidationService,
+    IRefreshTokenRepository refreshTokenRepository,
+    IJwtTokenGenerator jwtTokenGenerator,
+    IOptions<AuthConfiguration> authConfig)
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
@@ -14,6 +22,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     private readonly IRefreshTokenRepository _refreshTokenRepository = refreshTokenRepository;
     private readonly ITokenValidationService _tokenValidationService = tokenValidationService;
     private readonly IJwtTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;
+    private readonly AuthConfiguration _authConfig = authConfig.Value;
 
     public async Task<UserResponseDto?> CreateUserAsync(CreateUserDto userDto, CancellationToken cancellationToken = default)
     {
@@ -40,7 +49,6 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         if (await CheckIfEmailExists(email, cancellationToken) == false) return null;
 
         var user = await _userRepository.GetUserByEmailAsync(email, cancellationToken);
-
         return user != null ? _mapper.Map<UserResponseDto>(user) : null;
     }
 
@@ -69,7 +77,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         {
             UserId = userId,
             Token = refreshTokenString,
-            ExpiryDate = DateTime.UtcNow.AddDays(5),
+            ExpiryDate = DateTime.UtcNow.AddDays(_authConfig.RefreshTokenExpirationInDays),
             Invalidated = false,
         };
         RefreshToken refreshToken = _mapper.Map<RefreshToken>(refreshTokenDto);
@@ -99,9 +107,11 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         string newAccessToken = _jwtTokenGenerator.GenerateToken(userId, userEmailClaim, userRoleClaim);
         string newRefreshToken = _jwtTokenGenerator.GenerateRefreshToken();
 
-        await SaveRefreshTokenAsync(userId, newRefreshToken, cancellationToken);
         RefreshToken? oldToken = await _refreshTokenRepository.GetByTokenAsync(oldRefreshToken, cancellationToken);
-        await _refreshTokenRepository.RevokeOldUserTokenAsync(userId, oldRefreshToken, oldToken!.Id, cancellationToken);
+        if (oldToken == null) return null;
+
+        await _refreshTokenRepository.RevokeOldUserTokenAsync(userId, oldRefreshToken, oldToken.Id, cancellationToken);
+        await SaveRefreshTokenAsync(userId, newRefreshToken, cancellationToken);
 
         return new RefreshTokenResponse(newAccessToken, newRefreshToken);
     }

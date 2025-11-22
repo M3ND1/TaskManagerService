@@ -5,6 +5,7 @@ using TaskManager.Api.Exceptions.Handlers;
 using TaskManager.Api.Extensions;
 using TaskManager.Application.Mappings;
 using TaskManager.Application.Services;
+using TaskManager.Core.Configuration;
 using TaskManager.Core.Interfaces;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Authentication;
@@ -16,8 +17,8 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<TaskManager.Application.Validators.CreateUserDtoValidator>();
 
-var jwtSettings = builder.Configuration.GetSection("AuthConfiguration");
-builder.Services.Configure<AuthConfiguration>(jwtSettings);
+var authConfigSection = builder.Configuration.GetSection("AuthConfiguration");
+builder.Services.Configure<AuthConfiguration>(authConfigSection);
 
 builder.Services.AddDbContext<TaskManagerDbContext>(options =>
 {

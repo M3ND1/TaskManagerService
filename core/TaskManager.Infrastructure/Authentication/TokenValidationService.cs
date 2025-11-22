@@ -11,7 +11,6 @@ public class TokenValidationService(TokenValidationParameters tokenValidationPar
     private readonly TokenValidationParameters _tokenValidationParameters = tokenValidationParameters;
     private readonly IRefreshTokenRepository _refreshTokenRepository = refreshTokenRepository;
 
-
     public ClaimsPrincipal? GetPrincipalFromExpiredTokenAsync(string accessToken)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -28,18 +27,11 @@ public class TokenValidationService(TokenValidationParameters tokenValidationPar
         }
     }
 
-    private static bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
-        => validatedToken is JwtSecurityToken jwtSecurityToken
-       && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase);
-
     public async Task<bool> ValidateRefreshTokenAsync(string refreshToken, ClaimsPrincipal principal, CancellationToken cancellationToken)
     {
-        var isValidRefreshToken = await _refreshTokenRepository.IsValidAsync(refreshToken, cancellationToken);
-        if (!isValidRefreshToken)
-            return false;
-
         RefreshToken? storedRefreshToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken, cancellationToken);
-        if (!IsValidStoredRefreshToken(storedRefreshToken))
+
+        if (storedRefreshToken == null || !IsValidStoredRefreshToken(storedRefreshToken))
             return false;
 
         return true;
@@ -57,4 +49,7 @@ public class TokenValidationService(TokenValidationParameters tokenValidationPar
 
         return true;
     }
+    private static bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
+        => validatedToken is JwtSecurityToken jwtSecurityToken
+       && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase);
 }
