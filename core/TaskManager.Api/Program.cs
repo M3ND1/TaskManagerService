@@ -16,8 +16,8 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<TaskManager.Application.Validators.CreateUserDtoValidator>();
 
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-builder.Services.Configure<JwtSettings>(jwtSettings);
+var jwtSettings = builder.Configuration.GetSection("AuthConfiguration");
+builder.Services.Configure<AuthConfiguration>(jwtSettings);
 
 builder.Services.AddDbContext<TaskManagerDbContext>(options =>
 {

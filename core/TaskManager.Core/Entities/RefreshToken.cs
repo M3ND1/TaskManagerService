@@ -9,5 +9,6 @@ public class RefreshToken
     public bool Invalidated { get; set; } = false;
     public int UserId { get; set; }
     public int? ReplacedByTokenId { get; set; }
+    public DateTime? RevokedAt { get; set; }
     public virtual User User { get; set; } = null!;
 }

@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TaskManager.Api.Exceptions.Custom;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
 
@@ -15,11 +17,11 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     [HttpPost]
     [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateTask([FromBody] CreateManagedTaskDto createManagedTaskDto, int userId, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateTask([FromBody] CreateManagedTaskDto createManagedTaskDto, CancellationToken cancellationToken)
     {
-        ManagedTaskResponseDto? result = await _managedTaskService.CreateTaskAsync(createManagedTaskDto, userId, userId, cancellationToken);
-        if (result == null)
-            return BadRequest(new { message = "Could not create task" });
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
+
+        ManagedTaskResponseDto? result = await _managedTaskService.CreateTaskAsync(createManagedTaskDto, userId, userId, cancellationToken) ?? throw new BadRequestException("Could not create task");
 
         return CreatedAtAction(nameof(GetTask), new { id = result.Id }, result);
     }
@@ -31,19 +33,19 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     public async Task<IActionResult> GetTask(int id, CancellationToken cancellationToken)
     {
         var managedTask = await _managedTaskService.GetTaskAsync(id, cancellationToken);
-        return managedTask != null ? Ok(managedTask) : NotFound(new { message = "Something went wrong" });
+        return managedTask != null ? Ok(managedTask) : throw new NotFoundException("Something went wrong");
     }
 
     [Authorize]
     [HttpPut("{id}")]
-    [ProducesResponseType(typeof(UpdateManagedTaskDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(UpdateManagedTaskDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateManagedTaskDto updateManagedTaskDto, CancellationToken cancellationToken)
     {
         bool success = await _managedTaskService.UpdateTaskAsync(id, updateManagedTaskDto, cancellationToken);
 
-        if (!success) return NotFound(new { message = "Task not found" });
+        if (!success) throw new NotFoundException("Task not found");
 
         return Ok(new { message = "Task updated successfully!" });
     }
@@ -56,7 +58,7 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     {
         bool success = await _managedTaskService.DeleteTaskAsync(id, cancellationToken);
         if (!success)
-            return NotFound(new { message = "Could not delete task with this id" });
+            throw new NotFoundException("Could not delete task with this id");
 
         return NoContent();
     }

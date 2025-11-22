@@ -3,11 +3,8 @@ using TaskManager.Core.Entities;
 
 namespace TaskManager.Infrastructure;
 
-public class TaskManagerDbContext : DbContext
+public class TaskManagerDbContext(DbContextOptions<TaskManagerDbContext> dbContextOptions) : DbContext(dbContextOptions)
 {
-    public TaskManagerDbContext(DbContextOptions<TaskManagerDbContext> dbContextOptions) : base(dbContextOptions)
-    {
-    }
     public DbSet<ManagedTask> ManagedTasks { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Tag> Tags { get; set; }

@@ -17,7 +17,7 @@ public static class ServiceCollectionExtensions
             ValidIssuer = configuration["AuthConfiguration:Issuer"],
             ValidAudience = configuration["AuthConfiguration:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration["AuthConfiguration:Key"]!))
+                Encoding.UTF8.GetBytes(configuration["AuthConfiguration:Secret"]!))
         };
 
         services.AddAuthentication(options =>

@@ -1,6 +1,6 @@
 namespace TaskManager.Infrastructure.Authentication;
 
-public sealed class JwtSettings
+public sealed class AuthConfiguration
 {
     public string Secret { get; set; } = string.Empty;
     public string Issuer { get; set; } = string.Empty;

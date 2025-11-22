@@ -16,6 +16,7 @@ namespace Application.UnitTests.Services
         private readonly Mock<IPasswordService> _passwordService;
         private readonly Mock<IRefreshTokenRepository> _refreshTokenRepository;
         private readonly Mock<IJwtTokenGenerator> _jwtTokenGenerator;
+        private readonly Mock<ITokenValidationService> _tokenValidationService;
         private readonly UserService _userService;
 
         public UserServiceTests()
@@ -30,9 +31,11 @@ namespace Application.UnitTests.Services
             _passwordService = new Mock<IPasswordService>();
             _refreshTokenRepository = new Mock<IRefreshTokenRepository>();
             _jwtTokenGenerator = new Mock<IJwtTokenGenerator>();
+            _tokenValidationService = new Mock<ITokenValidationService>();
             _userService = new UserService(_userRepository.Object,
                 _mapper,
                 _passwordService.Object,
+                _tokenValidationService.Object,
                 _refreshTokenRepository.Object,
                 _jwtTokenGenerator.Object);
         }
