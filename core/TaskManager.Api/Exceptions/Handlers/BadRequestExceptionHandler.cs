@@ -2,36 +2,35 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Api.Exceptions.Custom;
 
-namespace TaskManager.Api.Exceptions.Handlers
+namespace TaskManager.Api.Exceptions.Handlers;
+
+internal sealed class BadRequestExceptionHandler : IExceptionHandler
 {
-    internal sealed class BadRequestExceptionHandler : IExceptionHandler
+    private readonly ILogger<BadRequestExceptionHandler> _logger;
+    public BadRequestExceptionHandler(ILogger<BadRequestExceptionHandler> logger)
     {
-        private readonly ILogger<BadRequestExceptionHandler> _logger;
-        public BadRequestExceptionHandler(ILogger<BadRequestExceptionHandler> logger)
+        _logger = logger;
+    }
+    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    {
+        if (exception is not BadRequestException badRequestException)
         {
-            _logger = logger;
+            return false;
         }
-        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+
+        _logger.LogWarning(exception, "Bad request: {Message}", badRequestException.Message);
+
+        var problemDetails = new ProblemDetails
         {
-            if (exception is not BadRequestException badRequestException)
-            {
-                return false;
-            }
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Bad Request",
+            Detail = badRequestException.Message
+        };
 
-            _logger.LogWarning(exception, "Bad request: {Message}", badRequestException.Message);
+        httpContext.Response.StatusCode = problemDetails.Status.Value;
 
-            var problemDetails = new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Bad Request",
-                Detail = badRequestException.Message
-            };
+        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
-            httpContext.Response.StatusCode = problemDetails.Status.Value;
-
-            await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
-
-            return true;
-        }
+        return true;
     }
 }

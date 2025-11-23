@@ -1,12 +1,11 @@
-using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using TaskManager.Api.Exceptions.Handlers;
+using TaskManager.Api.Extensions;
 using TaskManager.Application.Mappings;
 using TaskManager.Application.Services;
+using TaskManager.Core.Configuration;
 using TaskManager.Core.Interfaces;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Authentication;
@@ -18,9 +17,8 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<TaskManager.Application.Validators.CreateUserDtoValidator>();
 
-
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-builder.Services.Configure<JwtSettings>(jwtSettings);
+var authConfigSection = builder.Configuration.GetSection("AuthConfiguration");
+builder.Services.Configure<AuthConfiguration>(authConfigSection);
 
 builder.Services.AddDbContext<TaskManagerDbContext>(options =>
 {
@@ -29,9 +27,12 @@ builder.Services.AddDbContext<TaskManagerDbContext>(options =>
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
+//JWT Authentication
+builder.Services.AddJwtAuthentication(builder.Configuration);
 //Repositories
 builder.Services.AddScoped<IManagedTaskRepository, ManagedTaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 //Services
 builder.Services.AddScoped<ManagedTaskService>();
 builder.Services.AddScoped<UserService>();
@@ -42,24 +43,20 @@ builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("Admin", policy =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]))
-    };
-});
+        policy.RequireRole("Admin");
+    })
+    .AddPolicy("User", policy =>
+    {
+        policy.RequireRole("User");
+    })
+    .AddPolicy("TaskEditor", policy =>
+    {
+        policy.RequireRole("Admin", "User");
+    });
 
 // Register exception handlers
 builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();

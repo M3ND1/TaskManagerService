@@ -4,18 +4,20 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using TaskManager.Core.Configuration;
 using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Infrastructure.Authentication;
 
-public class JwtTokenGenerator(IOptions<JwtSettings> jwtSettings) : IJwtTokenGenerator
+public class JwtTokenGenerator(IOptions<AuthConfiguration> jwtSettings) : IJwtTokenGenerator
 {
-    private readonly JwtSettings _jwtSettings = jwtSettings.Value;
+    private readonly AuthConfiguration _jwtSettings = jwtSettings.Value;
 
     public string GenerateToken(int userId, string email, string role)
     {
         var claims = new List<Claim>
         {
+            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new(ClaimTypes.NameIdentifier, userId.ToString()),
             new(ClaimTypes.Email, email),
             new(ClaimTypes.Role, role),

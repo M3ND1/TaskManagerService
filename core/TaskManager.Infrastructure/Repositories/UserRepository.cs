@@ -7,6 +7,7 @@ namespace TaskManager.Infrastructure.Repositories;
 public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
 {
     private readonly TaskManagerDbContext _dbContext = dbContext;
+
     public async Task<bool> AddAsync(User user, CancellationToken cancellationToken = default)
     {
         if (user == null)
@@ -24,6 +25,7 @@ public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
 
     public async Task<bool> IsEmailTakenByOtherUserAsync(string email, int userId, CancellationToken cancellationToken = default)
         => await _dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email && u.Id != userId, cancellationToken);
+
     public async Task<bool> UpdateAsync(User user, CancellationToken cancellationToken = default)
     {
         if (user == null)
@@ -46,6 +48,9 @@ public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
         await _dbContext.Users.Where(u => u.Id == userId).ExecuteDeleteAsync(cancellationToken);
         return true;
     }
+
+    public async Task<bool> UserExistsByUserId(int userId, CancellationToken cancellationToken = default)
+        => await _dbContext.Users.AsNoTracking().Where(u => u.Id == userId).AnyAsync(cancellationToken);
 
     public async Task<User?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken = default)
         => await _dbContext.Users.AsNoTracking().Where(u => u.Username == username).FirstOrDefaultAsync(cancellationToken);

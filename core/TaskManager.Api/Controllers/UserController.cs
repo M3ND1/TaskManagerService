@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TaskManager.Api.Exceptions.Custom;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
 
@@ -13,12 +14,12 @@ public class UserController(UserService userService) : ControllerBase
 
     [Authorize]
     [HttpPut("{id}")]
-    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto updateUserDto, CancellationToken cancellationToken)
     {
         var result = await _userService.UpdateUserAsync(id, updateUserDto, cancellationToken);
-        if (!result) return BadRequest(new { message = "Something went wrong while updating user account" });
+        if (!result) throw new BadRequestException("Something went wrong while updating user account");
 
         return Ok(new { message = "User updated successfully!" });
     }
@@ -26,11 +27,11 @@ public class UserController(UserService userService) : ControllerBase
     [Authorize]
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteUser(int id, CancellationToken cancellationToken)
     {
         bool result = await _userService.DeleteUserAsync(id, cancellationToken);
-        if (!result) return BadRequest(new { message = "Could not find account with given id" });
+        if (!result) throw new BadRequestException("Could not find account with given id");
 
         return NoContent();
     }

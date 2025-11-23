@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TaskManager.Api.Exceptions.Custom;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
 using TaskManager.Core.Interfaces;
@@ -7,11 +9,11 @@ namespace TaskManager.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(UserService userService, IPasswordService passwordService, IJwtTokenGenerator jwtTokenGenerator, IConfiguration configuration) : ControllerBase
+public class AuthController(UserService userService, IPasswordService passwordService, IJwtTokenGenerator jwtGenerator, IConfiguration configuration) : ControllerBase
 {
     private readonly UserService _userService = userService;
     private readonly IPasswordService _passwordService = passwordService;
-    private readonly IJwtTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;
+    private readonly IJwtTokenGenerator _jwtGenerator = jwtGenerator;
     private readonly IConfiguration _configuration = configuration;
 
     [HttpPost("register")]
@@ -19,46 +21,57 @@ public class AuthController(UserService userService, IPasswordService passwordSe
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto, CancellationToken cancellationToken)
     {
-        var userResponse = await _userService.CreateUserAsync(createUserDto, cancellationToken);
-        if (userResponse == null) return BadRequest(new { message = "Something went wrong while creating user" });
-
+        var userResponse = await _userService.CreateUserAsync(createUserDto, cancellationToken) ?? throw new BadRequestException("User registration failed");
         return CreatedAtAction(nameof(GetUser), new { userResponse.Id }, userResponse);
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUser(int id, CancellationToken cancellationToken)
     {
-        var userResponseDto = await _userService.GetUserAsync(id, cancellationToken);
-        if (userResponseDto == null)
-            return NotFound(new { message = "User not found." });
-
+        var userResponseDto = await _userService.GetUserAsync(id, cancellationToken) ?? throw new NotFoundException("User not found.");
         return Ok(userResponseDto);
     }
+
     [HttpPost("login")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+    public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
-            return BadRequest(new { message = "Invalid user date entered." });
+            throw new BadRequestException("Invalid user data entered.");
 
-        var hashedPassword = await _userService.GetUserHashedPasswordByUsernameAsync(userLoginDto.Email);
+        var hashedPassword = await _userService.GetUserHashedPasswordByUsernameAsync(userLoginDto.Email, cancellationToken);
         var superHardHash = _configuration.GetSection("SuperHardHash");
         var hashToVerify = hashedPassword ?? superHardHash["Secret"];
 
-        bool isPasswordValid = _passwordService.VerifyPassword(userLoginDto.Password, hashToVerify);
+        bool isPasswordValid = _passwordService.VerifyPassword(userLoginDto.Password, hashToVerify!);
         if (hashedPassword == null || !isPasswordValid)
-            return BadRequest(new { message = "Invalid email or password." });
+            throw new BadRequestException("Invalid email or password.");
 
-        var user = await _userService.GetByEmailAsync(userLoginDto.Email);
+        var user = await _userService.GetByEmailAsync(userLoginDto.Email, cancellationToken) ?? throw new BadRequestException("User does not exist");
+        var token = _jwtGenerator.GenerateToken(user.Id, user.Email!, user.Role);
+        var refreshToken = _jwtGenerator.GenerateRefreshToken();
 
-        var token = _jwtTokenGenerator.GenerateToken(user.Id, user.Email, user.Role);
-        var refreshToken = _jwtTokenGenerator.GenerateRefreshToken();
-        //new table tokens
-        // _userService.SaveRefreshTokenAsync(userResponse.Id, resfreshToken);
+        await _userService.SaveRefreshTokenAsync(user.Id, refreshToken, cancellationToken);
 
-        return Ok(new { token, refreshToken });
+        return Ok(new UserLoginResponseDto(token, refreshToken));
+    }
+
+    [HttpPost("refresh")]
+    [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest refreshTokenReuquest, CancellationToken cancellationToken)
+    {
+        var (accessToken, refreshToken) = refreshTokenReuquest;
+
+        var result = await _userService.RefreshTokenForUserAsync(accessToken, refreshToken, cancellationToken);
+
+        if (result != null)
+            return Ok(new RefreshTokenResponse(result.AccessToken, result.RefreshToken));
+
+        return BadRequest();
     }
 }

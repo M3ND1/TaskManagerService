@@ -1,9 +1,11 @@
 using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Mappings;
 using TaskManager.Application.Services;
+using TaskManager.Core.Configuration;
 using TaskManager.Core.Entities;
 using TaskManager.Core.Interfaces;
 
@@ -14,6 +16,10 @@ namespace Application.UnitTests.Services
         private readonly IMapper _mapper;
         private readonly Mock<IUserRepository> _userRepository;
         private readonly Mock<IPasswordService> _passwordService;
+        private readonly Mock<IRefreshTokenRepository> _refreshTokenRepository;
+        private readonly Mock<IJwtTokenGenerator> _jwtTokenGenerator;
+        private readonly Mock<ITokenValidationService> _tokenValidationService;
+        private readonly Mock<IOptions<AuthConfiguration>> _authConfig;
         private readonly UserService _userService;
 
         public UserServiceTests()
@@ -26,7 +32,18 @@ namespace Application.UnitTests.Services
             _mapper = mapper;
             _userRepository = new Mock<IUserRepository>();
             _passwordService = new Mock<IPasswordService>();
-            _userService = new UserService(_userRepository.Object, _mapper, _passwordService.Object);
+            _refreshTokenRepository = new Mock<IRefreshTokenRepository>();
+            _jwtTokenGenerator = new Mock<IJwtTokenGenerator>();
+            _tokenValidationService = new Mock<ITokenValidationService>();
+            _authConfig = new Mock<IOptions<AuthConfiguration>>();
+
+            _userService = new UserService(_userRepository.Object,
+                _mapper,
+                _passwordService.Object,
+                _tokenValidationService.Object,
+                _refreshTokenRepository.Object,
+                _jwtTokenGenerator.Object,
+                _authConfig.Object);
         }
 
         [Fact]
