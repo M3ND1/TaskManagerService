@@ -55,8 +55,7 @@ public class AuthController(UserService userService, IPasswordService passwordSe
         var token = _jwtGenerator.GenerateToken(user.Id, user.Email!, user.Role);
         var refreshToken = _jwtGenerator.GenerateRefreshToken();
 
-        await _userService.SaveRefreshTokenAsync(user.Id, refreshToken, cancellationToken);
-
+        _ = await _userService.SaveRefreshTokenAsync(user.Id, refreshToken, cancellationToken);
         return Ok(new UserLoginResponseDto(token, refreshToken));
     }
 

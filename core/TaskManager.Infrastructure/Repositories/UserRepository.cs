@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManager.Core.Entities;
+using TaskManager.Core.Exceptions;
 using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Infrastructure.Repositories;
@@ -10,11 +11,17 @@ public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
 
     public async Task<bool> AddAsync(User user, CancellationToken cancellationToken = default)
     {
-        if (user == null)
-            return false;
-        await _dbContext.Users.AddAsync(user, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        return true;
+        try
+        {
+            if (user == null) return false;
+            await _dbContext.Users.AddAsync(user, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException pgEx && pgEx.SqlState == "23505")
+        {
+            throw new BadRequestException("A user with this email already exists.");
+        }
     }
 
     public async Task<User?> GetAsync(int id, CancellationToken cancellationToken = default)
