@@ -1,16 +1,13 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Api.Exceptions.Custom;
+using TaskManager.Core.Exceptions;
 
 namespace TaskManager.Api.Exceptions.Handlers;
 
-internal sealed class ForbiddenExceptionHandler : IExceptionHandler
+internal sealed class ForbiddenExceptionHandler(ILogger<ForbiddenExceptionHandler> logger) : IExceptionHandler
 {
-    private readonly ILogger<ForbiddenExceptionHandler> _logger;
-    public ForbiddenExceptionHandler(ILogger<ForbiddenExceptionHandler> logger)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger<ForbiddenExceptionHandler> _logger = logger;
+
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         if (exception is not ForbiddenException forbiddenException)
@@ -34,4 +31,3 @@ internal sealed class ForbiddenExceptionHandler : IExceptionHandler
         return true;
     }
 }
-

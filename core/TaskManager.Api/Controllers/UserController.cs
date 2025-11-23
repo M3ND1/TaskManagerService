@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Api.Exceptions.Custom;
+using TaskManager.Core.Exceptions;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
 
@@ -24,7 +24,7 @@ public class UserController(UserService userService) : ControllerBase
         return Ok(new { message = "User updated successfully!" });
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

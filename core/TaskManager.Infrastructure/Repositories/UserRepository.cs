@@ -23,6 +23,9 @@ public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
     public async Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default)
         => await _dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email, cancellationToken);
 
+    public async Task<bool> UsernameExistsAsync(string username, CancellationToken cancellationToken = default)
+        => await _dbContext.Users.AsNoTracking().AnyAsync(u => u.Username == username, cancellationToken);
+
     public async Task<bool> IsEmailTakenByOtherUserAsync(string email, int userId, CancellationToken cancellationToken = default)
         => await _dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email && u.Id != userId, cancellationToken);
 
@@ -55,8 +58,8 @@ public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
     public async Task<User?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken = default)
         => await _dbContext.Users.AsNoTracking().Where(u => u.Username == username).FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<string?> GetUserPasswordHashByUsernameAsync(string username, CancellationToken cancellationToken = default)
-        => await _dbContext.Users.AsNoTracking().Where(u => u.Username == username).Select(u => u.PasswordHash).FirstOrDefaultAsync(cancellationToken);
+    public async Task<string?> GetUserPasswordHashByEmailAsync(string email, CancellationToken cancellationToken = default)
+        => await _dbContext.Users.AsNoTracking().Where(u => u.Email == email).Select(u => u.PasswordHash).FirstOrDefaultAsync(cancellationToken);
 
     public async Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
         => await _dbContext.Users.AsNoTracking().Where(u => u.Email == email).FirstOrDefaultAsync(cancellationToken);

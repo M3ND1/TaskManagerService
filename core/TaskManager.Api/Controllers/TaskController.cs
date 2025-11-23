@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Api.Exceptions.Custom;
+using TaskManager.Core.Exceptions;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
 
@@ -33,7 +33,7 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     public async Task<IActionResult> GetTask(int id, CancellationToken cancellationToken)
     {
         var managedTask = await _managedTaskService.GetTaskAsync(id, cancellationToken);
-        return managedTask != null ? Ok(managedTask) : throw new NotFoundException("Something went wrong");
+        return managedTask != null ? Ok(managedTask) : throw new NotFoundException("No task found.");
     }
 
     [Authorize]

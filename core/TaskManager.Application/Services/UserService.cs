@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using TaskManager.Application.DTOs;
 using TaskManager.Core.Configuration;
 using TaskManager.Core.Entities;
+using TaskManager.Core.Exceptions;
 using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Application.Services;
@@ -27,7 +28,10 @@ public class UserService(IUserRepository userRepository,
     public async Task<UserResponseDto?> CreateUserAsync(CreateUserDto userDto, CancellationToken cancellationToken = default)
     {
         if (await _userRepository.EmailExistsAsync(userDto.Email, cancellationToken))
-            return null;
+            throw new BadRequestException($"Email '{userDto.Email}' is already taken.");
+
+        if (await _userRepository.UsernameExistsAsync(userDto.Username, cancellationToken))
+            throw new BadRequestException($"Username '{userDto.Username}' is already taken.");
 
         User user = _mapper.Map<User>(userDto);
         user.PasswordHash = _passwordService.SecurePassword(userDto.Password);
@@ -52,7 +56,7 @@ public class UserService(IUserRepository userRepository,
         return user != null ? _mapper.Map<UserResponseDto>(user) : null;
     }
 
-    public async Task<string?> GetUserHashedPasswordByUsernameAsync(string username, CancellationToken cancellationToken = default) => await _userRepository.GetUserPasswordHashByUsernameAsync(username, cancellationToken);
+    public async Task<string?> GetUserHashedPasswordByEmailAsync(string email, CancellationToken cancellationToken = default) => await _userRepository.GetUserPasswordHashByEmailAsync(email, cancellationToken);
 
     public async Task<bool> UpdateUserAsync(int id, UpdateUserDto userDto, CancellationToken cancellationToken = default)
     {
@@ -71,7 +75,7 @@ public class UserService(IUserRepository userRepository,
         return user != null && await _userRepository.DeleteAsync(id, cancellationToken);
     }
 
-    public async Task SaveRefreshTokenAsync(int userId, string refreshTokenString, CancellationToken cancellationToken)
+    public async Task<int> SaveRefreshTokenAsync(int userId, string refreshTokenString, CancellationToken cancellationToken)
     {
         var refreshTokenDto = new RefreshTokenDto()
         {
@@ -82,6 +86,7 @@ public class UserService(IUserRepository userRepository,
         };
         RefreshToken refreshToken = _mapper.Map<RefreshToken>(refreshTokenDto);
         await _refreshTokenRepository.SaveAsync(refreshToken, cancellationToken);
+        return refreshToken.Id;
     }
     public async Task<RefreshTokenResponse?> RefreshTokenForUserAsync(string oldAccessToken, string oldRefreshToken, CancellationToken cancellationToken)
     {
@@ -110,8 +115,8 @@ public class UserService(IUserRepository userRepository,
         RefreshToken? oldToken = await _refreshTokenRepository.GetByTokenAsync(oldRefreshToken, cancellationToken);
         if (oldToken == null) return null;
 
-        await _refreshTokenRepository.RevokeOldUserTokenAsync(userId, oldRefreshToken, oldToken.Id, cancellationToken);
-        await SaveRefreshTokenAsync(userId, newRefreshToken, cancellationToken);
+        int newTokenId = await SaveRefreshTokenAsync(userId, newRefreshToken, cancellationToken);
+        await _refreshTokenRepository.RevokeOldUserTokenAsync(userId, oldRefreshToken, newTokenId, cancellationToken);
 
         return new RefreshTokenResponse(newAccessToken, newRefreshToken);
     }

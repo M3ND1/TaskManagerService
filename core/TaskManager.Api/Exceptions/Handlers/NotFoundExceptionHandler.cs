@@ -1,16 +1,13 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Api.Exceptions.Custom;
+using TaskManager.Core.Exceptions;
 
 namespace TaskManager.Api.Exceptions.Handlers;
 
-internal sealed class NotFoundExceptionHandler : IExceptionHandler
+internal sealed class NotFoundExceptionHandler(ILogger<NotFoundExceptionHandler> logger) : IExceptionHandler
 {
-    private readonly ILogger<NotFoundExceptionHandler> _logger;
-    public NotFoundExceptionHandler(ILogger<NotFoundExceptionHandler> logger)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger<NotFoundExceptionHandler> _logger = logger;
+
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         if (exception is not NotFoundException notFoundException)

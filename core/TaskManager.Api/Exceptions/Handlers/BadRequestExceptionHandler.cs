@@ -1,16 +1,13 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Api.Exceptions.Custom;
+using TaskManager.Core.Exceptions;
 
 namespace TaskManager.Api.Exceptions.Handlers;
 
-internal sealed class BadRequestExceptionHandler : IExceptionHandler
+internal sealed class BadRequestExceptionHandler(ILogger<BadRequestExceptionHandler> logger) : IExceptionHandler
 {
-    private readonly ILogger<BadRequestExceptionHandler> _logger;
-    public BadRequestExceptionHandler(ILogger<BadRequestExceptionHandler> logger)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger<BadRequestExceptionHandler> _logger = logger;
+
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         if (exception is not BadRequestException badRequestException)

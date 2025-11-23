@@ -33,13 +33,13 @@ public class RefreshTokenRepository(TaskManagerDbContext dbContext) : IRefreshTo
         return affectedRows > 0;
     }
 
-    public async Task<int> RevokeOldUserTokenAsync(int userId, string oldRefreshToken, int oldTokenId = -1, CancellationToken cancellationToken = default)
+    public async Task<int> RevokeOldUserTokenAsync(int userId, string oldRefreshToken, int newTokenId = -1, CancellationToken cancellationToken = default)
     {
         return await _dbContext.RefreshTokens.Where(x => x.UserId == userId && x.Token == oldRefreshToken)
             .ExecuteUpdateAsync(rt => rt
                 .SetProperty(rt => rt.Invalidated, true)
                 .SetProperty(rt => rt.RevokedAt, DateTime.UtcNow)
-                .SetProperty(rt => rt.ReplacedByTokenId, oldTokenId),
+                .SetProperty(rt => rt.ReplacedByTokenId, newTokenId),
                 cancellationToken);
     }
 }

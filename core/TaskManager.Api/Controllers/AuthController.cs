@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Api.Exceptions.Custom;
+using TaskManager.Core.Exceptions;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
 using TaskManager.Core.Interfaces;
@@ -43,7 +43,7 @@ public class AuthController(UserService userService, IPasswordService passwordSe
         if (!ModelState.IsValid)
             throw new BadRequestException("Invalid user data entered.");
 
-        var hashedPassword = await _userService.GetUserHashedPasswordByUsernameAsync(userLoginDto.Email, cancellationToken);
+        var hashedPassword = await _userService.GetUserHashedPasswordByEmailAsync(userLoginDto.Email, cancellationToken);
         var superHardHash = _configuration.GetSection("SuperHardHash");
         var hashToVerify = hashedPassword ?? superHardHash["Secret"];
 
