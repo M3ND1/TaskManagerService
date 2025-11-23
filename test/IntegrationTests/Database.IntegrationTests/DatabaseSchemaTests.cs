@@ -45,7 +45,6 @@ public class DatabaseSchemaTests : IDisposable
         columns.Should().Contain("Email");
         columns.Should().Contain("Username");
         columns.Should().Contain("PasswordHash");
-        columns.Should().Contain("PasswordSalt");
         columns.Should().Contain("IsActive");
         columns.Should().Contain("CreatedAt");
         columns.Should().Contain("LastLoginAt");

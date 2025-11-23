@@ -17,7 +17,7 @@ namespace TaskManager.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -105,6 +105,49 @@ namespace TaskManager.Infrastructure.Migrations
                     b.ToTable("ManagedTasks");
                 });
 
+            modelBuilder.Entity("TaskManager.Core.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Invalidated")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("ReplacedByTokenId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiryDate");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("TaskManager.Core.Entities.Tag", b =>
                 {
                     b.Property<int>("Id")
@@ -181,14 +224,13 @@ namespace TaskManager.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("PasswordSalt")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(12)
                         .HasColumnType("character varying(12)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -242,6 +284,17 @@ namespace TaskManager.Infrastructure.Migrations
                     b.Navigation("CreatedBy");
                 });
 
+            modelBuilder.Entity("TaskManager.Core.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("TaskManager.Core.Entities.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TaskManager.Core.Entities.Tag", b =>
                 {
                     b.HasOne("TaskManager.Core.Entities.User", "CreatedBy")
@@ -257,6 +310,8 @@ namespace TaskManager.Infrastructure.Migrations
                     b.Navigation("AssignedTasks");
 
                     b.Navigation("CreatedTasks");
+
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }
