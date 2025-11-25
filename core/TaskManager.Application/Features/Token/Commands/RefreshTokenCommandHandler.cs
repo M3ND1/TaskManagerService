@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Options;
 using TaskManager.Application.DTOs;
@@ -12,16 +11,12 @@ namespace TaskManager.Application.Features.Token.Commands;
 
 public class RefreshTokenCommandHandler(
     IUserRepository userRepository,
-    IMapper mapper,
-    IPasswordService passwordService,
     ITokenValidationService tokenValidationService,
     IRefreshTokenRepository refreshTokenRepository,
     IJwtTokenGenerator jwtTokenGenerator,
     IOptions<AuthConfiguration> authConfig) : IRequestHandler<RefreshTokenCommand, RefreshTokenResponse>
 {
     private readonly IUserRepository _userRepository = userRepository;
-    private readonly IMapper _mapper = mapper;
-    private readonly IPasswordService _passwordService = passwordService;
     private readonly IRefreshTokenRepository _refreshTokenRepository = refreshTokenRepository;
     private readonly ITokenValidationService _tokenValidationService = tokenValidationService;
     private readonly IJwtTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;

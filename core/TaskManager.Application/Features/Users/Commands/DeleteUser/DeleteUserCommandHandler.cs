@@ -9,8 +9,11 @@ public class DeleteUserCommandHandler(IUserRepository userRepository) : IRequest
     private readonly IUserRepository _userRepository = userRepository;
     public async Task<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetAsync(request.UserId, cancellationToken) ?? throw new BadRequestException("User does not exist");
-        await _userRepository.DeleteAsync(user.Id, cancellationToken);
+        var user = await _userRepository.GetAsync(request.UserId, cancellationToken) 
+            ?? throw new NotFoundException($"User with ID {request.UserId} not found");
+        
+        if (!await _userRepository.DeleteAsync(user.Id, cancellationToken))
+            throw new DatabaseOperationException("Failed to delete user from database");
 
         return Unit.Value;
     }

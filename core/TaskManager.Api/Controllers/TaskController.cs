@@ -4,14 +4,20 @@ using Microsoft.AspNetCore.Mvc;
 using TaskManager.Core.Exceptions;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
+using MediatR;
+using TaskManager.Application.Features.Tasks.Commands.CreateTask;
+using TaskManager.Application.Features.Tasks.Queries.GetTask;
+using TaskManager.Application.Features.Tasks.Commands.UpdateTask;
+using TaskManager.Application.Features.Tasks.Commands.DeleteTask;
 
 namespace TaskManager.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TaskController(ManagedTaskService managedTaskService) : ControllerBase
+public class TaskController(ManagedTaskService managedTaskService, IMediator mediator) : ControllerBase
 {
     private readonly ManagedTaskService _managedTaskService = managedTaskService;
+    private readonly IMediator _mediator = mediator;
 
     [Authorize]
     [HttpPost]
@@ -21,33 +27,33 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
 
-        ManagedTaskResponseDto? result = await _managedTaskService.CreateTaskAsync(createManagedTaskDto, userId, userId, cancellationToken) ?? throw new BadRequestException("Could not create task");
-
+        var command = new CreateTaskCommand(createManagedTaskDto, userId);
+        var result = await _mediator.Send(command, cancellationToken);
         return CreatedAtAction(nameof(GetTask), new { id = result.Id }, result);
     }
 
     [Authorize]
-    [HttpGet("{id}")]
     [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTask(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetTask(CancellationToken cancellationToken)
     {
-        var managedTask = await _managedTaskService.GetTaskAsync(id, cancellationToken);
-        return managedTask != null ? Ok(managedTask) : throw new NotFoundException("No task found.");
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
+        var query = new GetTaskQuery(userId);
+        var result = await _mediator.Send(query, cancellationToken);
+        return Ok(result);
     }
 
     [Authorize]
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateManagedTaskDto updateManagedTaskDto, CancellationToken cancellationToken)
     {
-        bool success = await _managedTaskService.UpdateTaskAsync(id, updateManagedTaskDto, cancellationToken);
 
-        if (!success) throw new NotFoundException("Task not found");
-
-        return Ok(new { message = "Task updated successfully!" });
+        var command = new UpdateTaskCommand(id, updateManagedTaskDto);
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 
     [Authorize]
@@ -56,10 +62,8 @@ public class TaskController(ManagedTaskService managedTaskService) : ControllerB
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTask(int id, CancellationToken cancellationToken)
     {
-        bool success = await _managedTaskService.DeleteTaskAsync(id, cancellationToken);
-        if (!success)
-            throw new NotFoundException("Could not delete task with this id");
-
+        var command = new DeleteTaskCommand(id);
+        await _mediator.Send(command, cancellationToken);
         return NoContent();
     }
 }

@@ -24,7 +24,7 @@ public class CreateUserCommandHandler(IUserRepository userRepository, IPasswordS
         User user = _mapper.Map<User>(request.CreateUserDto);
         user.PasswordHash = _passwordService.SecurePassword(request.CreateUserDto.Password);
         if (!await _userRepository.AddAsync(user, cancellationToken))
-            throw new BadRequestException("Could not add user to database");
+            throw new DatabaseOperationException("Failed to create user in database");
 
         return _mapper.Map<UserResponseDto>(user);
     }

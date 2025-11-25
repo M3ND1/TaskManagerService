@@ -5,15 +5,11 @@ using TaskManager.Core.Interfaces;
 
 namespace TaskManager.Application.Services;
 
-public class ManagedTaskService
+public class ManagedTaskService(IManagedTaskRepository managedTaskRepository, IMapper mapper)
 {
-    private readonly IManagedTaskRepository _managedTaskRepository;
-    private readonly IMapper _mapper;
-    public ManagedTaskService(IManagedTaskRepository managedTaskRepository, IMapper mapper)
-    {
-        _managedTaskRepository = managedTaskRepository;
-        _mapper = mapper;
-    }
+    private readonly IManagedTaskRepository _managedTaskRepository = managedTaskRepository;
+    private readonly IMapper _mapper = mapper;
+
     public async Task<ManagedTaskResponseDto?> CreateTaskAsync(CreateManagedTaskDto managedTaskDto, int userId, int? assignedToId = null, CancellationToken cancellationToken = default)
     {
         ManagedTask managedTask = _mapper.Map<ManagedTask>(managedTaskDto);
