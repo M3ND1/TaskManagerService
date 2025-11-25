@@ -13,7 +13,9 @@ public class GetTaskQueryHandler(IManagedTaskRepository managedTaskRepository, I
     private readonly IMapper _mapper = mapper;
     public async Task<ManagedTaskResponseDto> Handle(GetTaskQuery request, CancellationToken cancellationToken)
     {
-        ManagedTask? managedTask = await _managedTaskRepository.GetAsync(request.TaskId, cancellationToken);
-        return managedTask == null ? _mapper.Map<ManagedTaskResponseDto>(managedTask) : throw new BadRequestException("Could not get task");
+        ManagedTask managedTask = await _managedTaskRepository.GetAsync(request.TaskId, cancellationToken) 
+            ?? throw new NotFoundException("Could not get task");
+
+        return _mapper.Map<ManagedTaskResponseDto>(managedTask);
     }
 }

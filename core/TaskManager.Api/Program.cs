@@ -38,7 +38,6 @@ builder.Services.AddScoped<IManagedTaskRepository, ManagedTaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 //Services
-builder.Services.AddScoped<ManagedTaskService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<ITokenValidationService, TokenValidationService>();
 //Authentication

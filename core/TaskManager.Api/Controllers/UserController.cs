@@ -29,17 +29,18 @@ public class UserController(IMediator mediator) : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("{id}")]
+    [HttpGet]
     [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetUser(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetUser(CancellationToken cancellationToken)
     {
-        var query = new GetUserQuery(id);
+        var query = new GetUserQuery(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
         var result = await _mediator.Send(query, cancellationToken);
         return Ok(result);
     }
 
     [Authorize]
+    [HttpPut]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto updateUserDto, CancellationToken cancellationToken)
@@ -50,6 +51,7 @@ public class UserController(IMediator mediator) : ControllerBase
     }
 
     [Authorize]
+    [HttpDelete]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteUser(CancellationToken cancellationToken)
@@ -72,9 +74,9 @@ public class UserController(IMediator mediator) : ControllerBase
     [HttpPost("refresh")]
     [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest refreshTokenReuquest, CancellationToken cancellationToken)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest refreshTokenRequest, CancellationToken cancellationToken)
     {
-        var command = new RefreshTokenCommand(refreshTokenReuquest);
+        var command = new RefreshTokenCommand(refreshTokenRequest);
 
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);

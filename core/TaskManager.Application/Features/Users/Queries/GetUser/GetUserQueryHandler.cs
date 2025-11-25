@@ -12,7 +12,8 @@ public class GetUserQueryHandler(IUserRepository userRepository, IMapper mapper)
     private readonly IMapper _mapper = mapper;
     public async Task<UserResponseDto> Handle(GetUserQuery request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetAsync(request.UserId, cancellationToken);
-        return _mapper.Map<UserResponseDto>(user) ?? throw new BadRequestException("Could not map user");
+        var user = await _userRepository.GetAsync(request.UserId, cancellationToken) 
+            ?? throw new NotFoundException("Could not map user");;
+        return _mapper.Map<UserResponseDto>(user);
     }
 }

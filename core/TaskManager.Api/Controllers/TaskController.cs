@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Core.Exceptions;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Services;
 using MediatR;
@@ -14,9 +13,8 @@ namespace TaskManager.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TaskController(ManagedTaskService managedTaskService, IMediator mediator) : ControllerBase
+public class TaskController(IMediator mediator) : ControllerBase
 {
-    private readonly ManagedTaskService _managedTaskService = managedTaskService;
     private readonly IMediator _mediator = mediator;
 
     [Authorize]
@@ -33,12 +31,12 @@ public class TaskController(ManagedTaskService managedTaskService, IMediator med
     }
 
     [Authorize]
+    [HttpGet("{id}")]
     [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTask(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetTask(int id, CancellationToken cancellationToken)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
-        var query = new GetTaskQuery(userId);
+        var query = new GetTaskQuery(id);
         var result = await _mediator.Send(query, cancellationToken);
         return Ok(result);
     }
@@ -50,7 +48,6 @@ public class TaskController(ManagedTaskService managedTaskService, IMediator med
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateManagedTaskDto updateManagedTaskDto, CancellationToken cancellationToken)
     {
-
         var command = new UpdateTaskCommand(id, updateManagedTaskDto);
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
