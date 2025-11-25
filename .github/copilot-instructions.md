@@ -39,6 +39,15 @@ You are working inside a layered ASP.NET Core 8 Web API that talks to PostgreSQL
 - Use EF Core through the repositories. If you need a new query, extend the repository interface and implementation; do not pull `TaskManagerDbContext` into higher layers.
 - Remember timestamps like `UpdatedAt` are set in services (see `ManagedTaskService.UpdateTaskAsync`). Keep that pattern.
 
+## MediatR usage
+
+- Use MediatR for application behavior that fits the request/response or notification pattern, but do not bypass existing services just to be "clever". Prefer `IMediator` orchestration over fat controllers, not over repositories.
+- Handlers belong in `TaskManager.Application` and must depend only on abstractions (`TaskManager.Core.Interfaces`, DTOs, and services) – never on `TaskManager.Api` or Infrastructure implementations directly.
+- Every MediatR handler method must be fully async and accept a `CancellationToken`, passing it down to services and repositories just like controllers do.
+- Reuse existing DTOs, validators, and AutoMapper profiles inside handlers. Do not introduce parallel models or custom validation pipelines when FluentValidation already covers the scenario.
+- Wire MediatR once in `Program.cs` (or a dedicated extension) for the Application assembly; do not scatter registrations or create multiple mediator instances.
+- Authorization still lives at the API boundary (controllers, filters, or policies). Do not hide auth checks inside handlers where they become impossible to reason about from the HTTP surface.
+
 ## Testing & verification
 
 - After touching runnable code, run `dotnet build` at the repo root. For behavior changes, run the focused test project (e.g., `test/UnitTests/Application.UnitTests`). Mention results.
