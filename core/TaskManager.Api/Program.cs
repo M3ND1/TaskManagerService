@@ -1,9 +1,11 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TaskManager.Api.Exceptions.Handlers;
 using TaskManager.Api.Extensions;
+using TaskManager.Application.Features.Users.Commands.LoginUser;
 using TaskManager.Application.Mappings;
 using TaskManager.Application.Services;
 using TaskManager.Core.Configuration;
@@ -14,6 +16,7 @@ using TaskManager.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddMediatR(typeof(LoginUserCommand).Assembly);
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<TaskManager.Application.Validators.CreateUserDtoValidator>();
@@ -35,8 +38,6 @@ builder.Services.AddScoped<IManagedTaskRepository, ManagedTaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 //Services
-builder.Services.AddScoped<ManagedTaskService>();
-builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<ITokenValidationService, TokenValidationService>();
 //Authentication
@@ -89,6 +90,7 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
 builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<ForbiddenExceptionHandler>();
+builder.Services.AddExceptionHandler<DatabaseOperationExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 var app = builder.Build();
 app.UseExceptionHandler(o => { });

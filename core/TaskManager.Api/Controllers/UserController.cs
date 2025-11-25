@@ -1,38 +1,84 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Core.Exceptions;
 using TaskManager.Application.DTOs;
-using TaskManager.Application.Services;
+using System.Security.Claims;
+using MediatR;
+using TaskManager.Application.Features.Users.Commands.UpdateUser;
+using TaskManager.Application.Features.Users.Commands.DeleteUser;
+using TaskManager.Application.Features.Users.Commands.CreateUser;
+using TaskManager.Application.Features.Users.Queries.GetUser;
+using TaskManager.Application.Features.Users.Commands.LoginUser;
+using TaskManager.Application.Features.Token.Commands;
 
 namespace TaskManager.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UserController(UserService userService) : ControllerBase
+public class UserController(IMediator mediator) : ControllerBase
 {
-    private readonly UserService _userService = userService;
+    private readonly IMediator _mediator = mediator;
 
-    [Authorize]
-    [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [HttpPost("register")]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto updateUserDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto, CancellationToken cancellationToken)
     {
-        var result = await _userService.UpdateUserAsync(id, updateUserDto, cancellationToken);
-        if (!result) throw new BadRequestException("Something went wrong while updating user account");
-
-        return Ok(new { message = "User updated successfully!" });
+        var command = new CreateUserCommand(createUserDto);
+        var result = await _mediator.Send(command, cancellationToken);
+        return CreatedAtAction(nameof(GetUser), new { result.Id }, result);
     }
 
-    [Authorize(Roles = "Admin")]
-    [HttpDelete("{id}")]
+    [Authorize]
+    [HttpGet]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUser(CancellationToken cancellationToken)
+    {
+        var query = new GetUserQuery(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+        var result = await _mediator.Send(query, cancellationToken);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPut]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> DeleteUser(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto updateUserDto, CancellationToken cancellationToken)
     {
-        bool result = await _userService.DeleteUserAsync(id, cancellationToken);
-        if (!result) throw new BadRequestException("Could not find account with given id");
-
+        var command = new UpdateUserCommand(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!), updateUserDto);
+        await _mediator.Send(command, cancellationToken);
         return NoContent();
+    }
+
+    [Authorize]
+    [HttpDelete]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeleteUser(CancellationToken cancellationToken)
+    {
+        var command = new DeleteUserCommand(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("login")]
+    [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto, CancellationToken cancellationToken)
+    {        
+        var command = new LoginUserCommand(userLoginDto);
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("refresh")]
+    [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest refreshTokenRequest, CancellationToken cancellationToken)
+    {
+        var command = new RefreshTokenCommand(refreshTokenRequest);
+
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 }
