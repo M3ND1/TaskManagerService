@@ -74,7 +74,23 @@ Or focus on a layer, e.g. `test/UnitTests/Application.UnitTests` for service cov
 - `ManagedTaskService` & `UserService` show the business rules (timestamps, refresh-token rotation, exception flow).
 - `ServiceCollectionExtensions.AddJwtAuthentication` centralizes auth configuration.
 - Validators like `CreateManagedTaskDtoValidator` illustrate the FluentValidation style guide.
-- `.github/copilot-instructions.md` documents the repo’s strict coding expectations.
+- `.github/copilot-instructions.md` documents the repo's strict coding expectations.
+
+## Code quality
+
+**SonarQube** runs locally for static analysis, code smells, and security hotspots.
+
+1. **Start SonarQube**
+   ```bash
+   docker compose -f docker-compose.sonarqube.yml up -d
+   ```
+2. **Run analysis**
+   ```bash
+   ./scripts/sonar-scan.sh
+   ```
+3. **View dashboard** – http://localhost:9000 (default: `admin` / `admin`).
+
+**SonarLint** integration in VS Code provides real-time feedback bound to the local SonarQube instance.
 
 ## Next steps
 

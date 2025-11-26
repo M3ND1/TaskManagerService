@@ -58,3 +58,14 @@ nunit-*.xml
 code_review.md
 REVIEW_RESULTS.md
 diff.txt
+
+# SonarQube
+.sonarqube/
+.scannerwork/
+.env.sonar
+
+# SonarLint
+.sonarlint/
+
+# VS Code local settings
+.vscode/settings.json
