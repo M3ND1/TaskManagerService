@@ -45,17 +45,17 @@ public class UserRepository(TaskManagerDbContext dbContext) : IUserRepository
         return affectedRows > 0;
     }
 
-    public async Task<bool> DeleteAsync(int userId, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        User? user = await GetAsync(userId, cancellationToken);
+        User? user = await GetAsync(id, cancellationToken);
         if (user == null)
             return false;
 
-        if (await _dbContext.ManagedTasks.AnyAsync(t => t.AssignedToId == userId || t.CreatedById == userId, cancellationToken))
+        if (await _dbContext.ManagedTasks.AnyAsync(t => t.AssignedToId == id || t.CreatedById == id, cancellationToken))
         {
-            await _dbContext.ManagedTasks.Where(t => t.AssignedToId == userId || t.CreatedById == userId).ExecuteDeleteAsync(cancellationToken);
+            await _dbContext.ManagedTasks.Where(t => t.AssignedToId == id || t.CreatedById == id).ExecuteDeleteAsync(cancellationToken);
         }
-        await _dbContext.Users.Where(u => u.Id == userId).ExecuteDeleteAsync(cancellationToken);
+        await _dbContext.Users.Where(u => u.Id == id).ExecuteDeleteAsync(cancellationToken);
         return true;
     }
 
