@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TaskManager.Core.Entities;
 using TaskManager.Core.Exceptions;
 using TaskManager.Core.Interfaces;
+using TaskManager.Infrastructure.Data.Database;
 
 namespace TaskManager.Infrastructure.Repositories;
 

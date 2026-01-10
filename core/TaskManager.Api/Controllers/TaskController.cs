@@ -2,7 +2,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Application.DTOs;
-using TaskManager.Application.Services;
 using MediatR;
 using TaskManager.Application.Features.Tasks.Commands.CreateTask;
 using TaskManager.Application.Features.Tasks.Queries.GetTask;
