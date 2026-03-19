@@ -1,9 +1,9 @@
-using AutoMapper;
 using MediatR;
-using TaskManager.Application.DTOs;
+using AutoMapper;
 using TaskManager.Core.Entities;
 using TaskManager.Core.Exceptions;
 using TaskManager.Core.Interfaces;
+using TaskManager.Application.DTOs.ManagedTask;
 
 namespace TaskManager.Application.Features.Tasks.Commands.CreateTask;
 

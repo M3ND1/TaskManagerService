@@ -1,5 +1,7 @@
 using AutoMapper;
 using TaskManager.Application.DTOs;
+using TaskManager.Application.DTOs.ManagedTask;
+using TaskManager.Application.DTOs.RefreshToken;
 using TaskManager.Core.Entities;
 
 namespace TaskManager.Application.Mappings;

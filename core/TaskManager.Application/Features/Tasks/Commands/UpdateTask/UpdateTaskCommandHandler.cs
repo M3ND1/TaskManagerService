@@ -1,6 +1,6 @@
 using AutoMapper;
 using MediatR;
-using TaskManager.Application.DTOs;
+using TaskManager.Application.DTOs.ManagedTask;
 using TaskManager.Core.Exceptions;
 using TaskManager.Core.Interfaces;
 

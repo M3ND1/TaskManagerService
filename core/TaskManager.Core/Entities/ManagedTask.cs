@@ -4,10 +4,10 @@ namespace TaskManager.Core.Entities
 {
     public class ManagedTask
     {
-        public int Id { get; set; }
+        public int Id { get; init; }
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DueDate { get; set; }
         public DateTime? CompletedAt { get; set; }

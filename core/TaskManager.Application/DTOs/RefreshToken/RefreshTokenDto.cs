@@ -1,4 +1,4 @@
-namespace TaskManager.Application.DTOs;
+namespace TaskManager.Application.DTOs.RefreshToken;
 
 public class RefreshTokenDto
 {

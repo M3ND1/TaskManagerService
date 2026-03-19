@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using MediatR;
 using Microsoft.Extensions.Options;
-using TaskManager.Application.DTOs;
+using TaskManager.Application.DTOs.RefreshTokenDto;
 using TaskManager.Core.Configuration;
 using TaskManager.Core.Entities;
 using TaskManager.Core.Exceptions;

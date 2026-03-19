@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
-using TaskManager.Infrastructure;
+using TaskManager.Infrastructure.Data.Database;
 
 namespace Database.IntegrationTests;
 
