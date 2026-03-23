@@ -19,7 +19,7 @@ core/
   TaskManager.Infrastructure// EF Core DbContext, repository implementations, auth helpers
 ```
 
-PostgreSQL is provided via the included `docker-compose.yml`.
+PostgreSQL is provided via the included `docker-compose.yml` (exposed on port **5433**).
 
 ## Tech stack
 
