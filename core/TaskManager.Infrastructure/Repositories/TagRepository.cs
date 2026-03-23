@@ -20,7 +20,6 @@ namespace TaskManager.Infrastructure.Repositories
         {
             return await _dbContext.Tags
                 .Include(t => t.CreatedBy)
-                .Include(t => t.CreatedById)
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 

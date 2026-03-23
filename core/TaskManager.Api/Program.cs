@@ -36,6 +36,7 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 //Repositories
 builder.Services.AddScoped<IManagedTaskRepository, ManagedTaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 //Services
 builder.Services.AddScoped<IPasswordService, PasswordService>();
