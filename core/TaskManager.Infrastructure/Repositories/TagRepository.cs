@@ -23,6 +23,13 @@ namespace TaskManager.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
+        public async Task<IEnumerable<Tag>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Tags
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<bool> UpdateAsync(Tag tag, CancellationToken cancellationToken = default)
         {
             if (tag == null) return false;

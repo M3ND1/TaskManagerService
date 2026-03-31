@@ -15,6 +15,9 @@ public class UpdateTagCommandHandler(ITagRepository tagRepository, IMapper mappe
         var tagFromDb = await _tagRepository.GetAsync(request.TagId, cancellationToken)
             ?? throw new NotFoundException($"Tag with ID {request.TagId} not found");
 
+        if (tagFromDb.CreatedById != request.UserId)
+            throw new ForbiddenException("You are not allowed to update this tag");
+
         _mapper.Map(request.UpdateTagDto, tagFromDb);
         tagFromDb.UpdatedAt = DateTime.UtcNow;
         if (!await _tagRepository.UpdateAsync(tagFromDb, cancellationToken))

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using TaskManager.Application.DTOs.Tag;
 using Microsoft.AspNetCore.Authorization;
 using TaskManager.Application.Features.Tags.Queries.GetTag;
+using TaskManager.Application.Features.Tags.Queries.GetAllTags;
 using TaskManager.Application.Features.Tags.Commands.UpdateTag;
 using TaskManager.Application.Features.Tags.Commands.CreateTag;
 using TaskManager.Application.Features.Tags.Commands.DeleteTag;
@@ -30,6 +31,16 @@ public class TagController(IMediator mediator) : ControllerBase
     }
 
     [Authorize]
+    [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<TagResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllTags(CancellationToken cancellationToken)
+    {
+        var query = new GetAllTagsQuery();
+        var result = await _mediator.Send(query, cancellationToken);
+        return Ok(result);
+    }
+
+    [Authorize]
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(TagResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -47,7 +58,8 @@ public class TagController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTag(int id, [FromBody] UpdateTagDto updateTagDto, CancellationToken cancellationToken)
     {
-        var command = new UpdateTagCommand(id, updateTagDto);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
+        var command = new UpdateTagCommand(id, updateTagDto, userId);
         var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
     }
@@ -58,7 +70,8 @@ public class TagController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTag(int id, CancellationToken cancellationToken)
     {
-        var command = new DeleteTagCommand(id);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
+        var command = new DeleteTagCommand(id, userId);
         await _mediator.Send(command, cancellationToken);
         return NoContent();
     }
