@@ -3,10 +3,10 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Application.DTOs.Tag;
 using Microsoft.AspNetCore.Authorization;
-using TaskManager.Application.Features.Tasks.Queries.GetTask;
+using TaskManager.Application.Features.Tags.Queries.GetTag;
 using TaskManager.Application.Features.Tags.Commands.UpdateTag;
 using TaskManager.Application.Features.Tags.Commands.CreateTag;
-using TaskManager.Application.Features.Tasks.Commands.DeleteTask;
+using TaskManager.Application.Features.Tags.Commands.DeleteTag;
 
 namespace TaskManager.Api.Controllers;
 
@@ -26,7 +26,7 @@ public class TagController(IMediator mediator) : ControllerBase
 
         var command = new CreateTagCommand(createTagDto, userId);
         var result = await _mediator.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetTag), new { id = result.Name }, result);
+        return CreatedAtAction(nameof(GetTag), new { id = result.Id }, result);
     }
 
     [Authorize]
@@ -35,7 +35,7 @@ public class TagController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTag(int id, CancellationToken cancellationToken)
     {
-        var query = new GetTaskQuery(id);
+        var query = new GetTagQuery(id);
         var result = await _mediator.Send(query, cancellationToken);
         return Ok(result);
     }
@@ -45,7 +45,7 @@ public class TagController(IMediator mediator) : ControllerBase
     [ProducesResponseType(typeof(TagResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateTagDto updateTagDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateTag(int id, [FromBody] UpdateTagDto updateTagDto, CancellationToken cancellationToken)
     {
         var command = new UpdateTagCommand(id, updateTagDto);
         var result = await _mediator.Send(command, cancellationToken);
@@ -56,9 +56,9 @@ public class TagController(IMediator mediator) : ControllerBase
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteTask(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteTag(int id, CancellationToken cancellationToken)
     {
-        var command = new DeleteTaskCommand(id);
+        var command = new DeleteTagCommand(id);
         await _mediator.Send(command, cancellationToken);
         return NoContent();
     }

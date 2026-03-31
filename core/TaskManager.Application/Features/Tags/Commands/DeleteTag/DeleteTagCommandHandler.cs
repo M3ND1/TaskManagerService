@@ -10,10 +10,10 @@ public class DeleteTagCommandHandler(ITagRepository tagRepository) : IRequestHan
 
     public async Task<Unit> Handle(DeleteTagCommand request, CancellationToken cancellationToken)
     {
-        var task = await _tagRepository.GetAsync(request.TaskId, cancellationToken) 
-            ?? throw new NotFoundException($"Tag with ID {request.TaskId} not found");
+        var tag = await _tagRepository.GetAsync(request.TagId, cancellationToken) 
+            ?? throw new NotFoundException($"Tag with ID {request.TagId} not found");
 
-        if (!await _tagRepository.DeleteAsync(task.Id, cancellationToken))
+        if (!await _tagRepository.DeleteAsync(tag.Id, cancellationToken))
             throw new DatabaseOperationException("Failed to delete tag from database");
 
         return Unit.Value;
