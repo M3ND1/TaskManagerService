@@ -1,5 +1,5 @@
 using FluentValidation;
-using TaskManager.Application.DTOs;
+using TaskManager.Application.DTOs.ManagedTask;
 
 namespace TaskManager.Application.Validators
 {

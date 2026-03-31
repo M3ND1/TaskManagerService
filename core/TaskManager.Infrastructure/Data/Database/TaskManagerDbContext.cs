@@ -46,7 +46,7 @@ public class TaskManagerDbContext(DbContextOptions<TaskManagerDbContext> dbConte
                 .OnDelete(DeleteBehavior.SetNull);
 
             e.HasIndex(t => t.CreatedById);
-            e.HasIndex(t => t.Name);
+            e.HasIndex(t => t.Name).IsUnique();
         });
 
         modelBuilder.Entity<ManagedTask>(e =>

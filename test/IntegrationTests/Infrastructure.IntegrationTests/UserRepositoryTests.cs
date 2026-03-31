@@ -4,6 +4,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using TaskManager.Core.Entities;
 using TaskManager.Infrastructure;
+using TaskManager.Infrastructure.Data.Database;
 using TaskManager.Infrastructure.Repositories;
 
 namespace Infrastructure.IntegrationTests;

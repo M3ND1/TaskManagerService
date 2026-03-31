@@ -1,18 +1,18 @@
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 using Microsoft.OpenApi.Models;
-using TaskManager.Api.Exceptions.Handlers;
 using TaskManager.Api.Extensions;
-using TaskManager.Application.Features.Users.Commands.LoginUser;
+using TaskManager.Core.Interfaces;
+using FluentValidation.AspNetCore;
+using Microsoft.EntityFrameworkCore;
+using TaskManager.Core.Configuration;
 using TaskManager.Application.Mappings;
 using TaskManager.Application.Services;
-using TaskManager.Core.Configuration;
-using TaskManager.Core.Interfaces;
-using TaskManager.Infrastructure;
-using TaskManager.Infrastructure.Authentication;
+using TaskManager.Api.Exceptions.Handlers;
 using TaskManager.Infrastructure.Repositories;
+using TaskManager.Infrastructure.Data.Database;
+using TaskManager.Infrastructure.Authentication;
+using TaskManager.Application.Features.Users.Commands.LoginUser;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +36,7 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 //Repositories
 builder.Services.AddScoped<IManagedTaskRepository, ManagedTaskRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 //Services
 builder.Services.AddScoped<IPasswordService, PasswordService>();

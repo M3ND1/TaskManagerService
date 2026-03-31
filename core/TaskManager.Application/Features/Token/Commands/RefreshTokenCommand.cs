@@ -1,5 +1,5 @@
 using MediatR;
-using TaskManager.Application.DTOs;
+using TaskManager.Application.DTOs.RefreshTokenDto;
 
 namespace TaskManager.Application.Features.Token.Commands;
 

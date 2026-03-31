@@ -1,5 +1,69 @@
 You are working inside a layered ASP.NET Core 8 Web API that talks to PostgreSQL through EF Core repositories. The `core/` directory houses the API, Application, Core, and Infrastructure projects, and `test/` holds unit and integration tests. Read the actual code before responding—lazy guesses will be obvious.
 
+## Project overview
+
+TaskManagerService is a .NET 8 Web API that lets teams create, assign, and track tasks with JWT-secured endpoints, refresh tokens, and PostgreSQL persistence (port **5433**). The codebase spotlights clean layering, FluentValidation, AutoMapper, and EF Core repositories with unit and integration coverage.
+
+### Architecture at a glance
+
+```
+core/
+  TaskManager.Api           // Controllers, exception handlers, DI setup
+  TaskManager.Application   // DTOs, services, validators, mapping profiles
+  TaskManager.Core          // Entities, enums, repository interfaces
+  TaskManager.Infrastructure// EF Core DbContext, repository implementations, auth helpers
+test/
+  IntegrationTests/         // Database and infrastructure integration tests
+  UnitTests/                // Application, Core, and Infrastructure unit tests
+```
+
+### Tech stack
+
+- .NET 8, C# 12
+- ASP.NET Core Minimal Hosting model
+- EF Core + Npgsql
+- FluentValidation, AutoMapper
+- JWT Bearer auth + custom refresh tokens
+- Docker (PostgreSQL on port 5433)
+
+### Quick start commands
+
+```bash
+# Start PostgreSQL
+docker compose up -d postgres
+
+# Restore & build
+dotnet build
+
+# Apply migrations
+dotnet ef database update --project core/TaskManager.Infrastructure --startup-project core/TaskManager.Api
+
+# Run the API
+dotnet run --project core/TaskManager.Api
+```
+
+Swagger UI: `https://localhost:5001/swagger` in Development.
+
+### Key API endpoints
+
+- `POST /api/auth/register` – create users with hashed passwords
+- `POST /api/auth/login` – issue JWT + refresh token pair
+- `POST /api/auth/refresh` – rotate tokens via `UserService.RefreshTokenForUserAsync`
+- `POST /api/task` – create tasks tied to the authenticated user
+- `PUT/DELETE /api/task/{id}` – update or remove tasks with optimistic concurrency
+
+### Code quality tools
+
+**SonarQube** runs locally for static analysis:
+
+```bash
+docker compose -f docker-compose.sonarqube.yml up -d
+./scripts/sonar-scan.sh
+# View at http://localhost:9000 (admin/admin)
+```
+
+**SonarLint** integration in VS Code provides real-time feedback.
+
 ## TL;DR expectations
 
 - Always produce C# 12 / .NET 8 compliant code that matches the style already used in `TaskManager.Api`, `TaskManager.Application`, and `TaskManager.Infrastructure`.

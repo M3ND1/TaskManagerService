@@ -1,5 +1,5 @@
 using FluentValidation;
-using TaskManager.Application.DTOs;
+using TaskManager.Application.DTOs.RefreshTokenDto;
 
 namespace TaskManager.Application.Validators;
 
@@ -16,7 +16,7 @@ public class RefreshTokenRequestValidator : AbstractValidator<RefreshTokenReques
             .Length(88, 88).WithMessage("Invalid refresh token format.");
     }
 
-    private bool BeValidJwtFormat(string token)
+    private static bool BeValidJwtFormat(string token)
     {
         return !string.IsNullOrEmpty(token) && token.Split('.').Length == 3;
     }

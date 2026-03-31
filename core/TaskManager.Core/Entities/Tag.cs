@@ -2,7 +2,7 @@ namespace TaskManager.Core.Entities
 {
     public class Tag
     {
-        public int Id { get; set; }
+        public int Id { get; init; }
         public string Name { get; set; } = string.Empty;
         public string? Color { get; set; }
         public string? Description { get; set; }

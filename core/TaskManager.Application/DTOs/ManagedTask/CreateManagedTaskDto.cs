@@ -1,6 +1,6 @@
 using TaskManager.Core.Enums;
 
-namespace TaskManager.Application.DTOs;
+namespace TaskManager.Application.DTOs.ManagedTask;
 
 public class CreateManagedTaskDto
 {

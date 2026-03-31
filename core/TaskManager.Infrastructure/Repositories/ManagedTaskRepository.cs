@@ -24,6 +24,13 @@ namespace TaskManager.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Id == taskId, cancellationToken);
         }
 
+        public async Task<ManagedTask?> GetWithTagsAsync(int taskId, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.ManagedTasks
+                .Include(t => t.Tags)
+                .FirstOrDefaultAsync(x => x.Id == taskId, cancellationToken);
+        }
+
         public async Task<bool> UpdateAsync(ManagedTask mappedTask, CancellationToken cancellationToken = default)
         {
             if (mappedTask == null) return false;

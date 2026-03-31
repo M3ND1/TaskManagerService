@@ -1,14 +1,15 @@
-using Microsoft.AspNetCore.Authorization;
+using MediatR;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Application.DTOs;
-using System.Security.Claims;
-using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using TaskManager.Application.DTOs.RefreshTokenDto;
+using TaskManager.Application.Features.Token.Commands;
+using TaskManager.Application.Features.Users.Queries.GetUser;
 using TaskManager.Application.Features.Users.Commands.UpdateUser;
 using TaskManager.Application.Features.Users.Commands.DeleteUser;
 using TaskManager.Application.Features.Users.Commands.CreateUser;
-using TaskManager.Application.Features.Users.Queries.GetUser;
 using TaskManager.Application.Features.Users.Commands.LoginUser;
-using TaskManager.Application.Features.Token.Commands;
 
 namespace TaskManager.Api.Controllers;
 

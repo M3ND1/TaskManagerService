@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TaskManager.Core.Entities;
 using TaskManager.Core.Enums;
 using TaskManager.Infrastructure;
+using TaskManager.Infrastructure.Data.Database;
 using TaskManager.Infrastructure.Repositories;
 
 namespace Infrastructure.IntegrationTests;
@@ -67,7 +68,6 @@ public class ManagedTaskRepositoryTests : IDisposable
         {
             Title = "New Test Task",
             Description = "Test description",
-            CreatedAt = DateTime.UtcNow,
             Priority = PriorityLevel.Medium,
             IsCompleted = false,
             CreatedById = 1
