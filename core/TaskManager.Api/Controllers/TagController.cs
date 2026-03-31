@@ -1,6 +1,7 @@
 using MediatR;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using TaskManager.Application.DTOs;
 using TaskManager.Application.DTOs.Tag;
 using Microsoft.AspNetCore.Authorization;
 using TaskManager.Application.Features.Tags.Queries.GetTag;
@@ -32,10 +33,10 @@ public class TagController(IMediator mediator) : ControllerBase
 
     [Authorize]
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<TagResponseDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllTags(CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(PagedResult<TagResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllTags([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        var query = new GetAllTagsQuery();
+        var query = new GetAllTagsQuery(pageNumber, pageSize);
         var result = await _mediator.Send(query, cancellationToken);
         return Ok(result);
     }

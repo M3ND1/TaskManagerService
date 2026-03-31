@@ -75,28 +75,34 @@ public class GetAllTagsQueryHandlerTests
             new() { Id = 1, Name = "Bug", CreatedAt = DateTime.UtcNow },
             new() { Id = 2, Name = "Feature", CreatedAt = DateTime.UtcNow }
         };
-        _tagRepositoryMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(tags);
+        _tagRepositoryMock
+            .Setup(r => r.GetPagedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((tags, tags.Count));
         var handler = new GetAllTagsQueryHandler(_tagRepositoryMock.Object, _mapper);
 
         // Act
         var result = await handler.Handle(new GetAllTagsQuery(), CancellationToken.None);
 
         // Assert
-        result.Should().HaveCount(2);
-        result.Select(t => t.Name).Should().BeEquivalentTo(["Bug", "Feature"]);
+        result.Items.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
+        result.Items.Select(t => t.Name).Should().BeEquivalentTo(["Bug", "Feature"]);
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnEmptyList_WhenNoTagsExist()
+    public async Task Handle_Should_ReturnEmptyPagedResult_WhenNoTagsExist()
     {
         // Arrange
-        _tagRepositoryMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync([]);
+        _tagRepositoryMock
+            .Setup(r => r.GetPagedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Enumerable.Empty<Tag>(), 0));
         var handler = new GetAllTagsQueryHandler(_tagRepositoryMock.Object, _mapper);
 
         // Act
         var result = await handler.Handle(new GetAllTagsQuery(), CancellationToken.None);
 
         // Assert
-        result.Should().BeEmpty();
+        result.Items.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
     }
 }

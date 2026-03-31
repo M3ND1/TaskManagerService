@@ -30,6 +30,18 @@ namespace TaskManager.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        public async Task<(IEnumerable<Tag> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+        {
+            var query = _dbContext.Tags.AsNoTracking();
+            var totalCount = await query.CountAsync(cancellationToken);
+            var items = await query
+                .OrderBy(t => t.Name)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+            return (items, totalCount);
+        }
+
         public async Task<bool> UpdateAsync(Tag tag, CancellationToken cancellationToken = default)
         {
             if (tag == null) return false;

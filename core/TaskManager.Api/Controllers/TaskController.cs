@@ -3,10 +3,14 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using TaskManager.Application.DTOs.ManagedTask;
+using TaskManager.Application.DTOs.Tag;
 using TaskManager.Application.Features.Tasks.Queries.GetTask;
+using TaskManager.Application.Features.Tasks.Queries.GetTaskTags;
 using TaskManager.Application.Features.Tasks.Commands.CreateTask;
 using TaskManager.Application.Features.Tasks.Commands.UpdateTask;
 using TaskManager.Application.Features.Tasks.Commands.DeleteTask;
+using TaskManager.Application.Features.Tasks.Commands.AssignTagToTask;
+using TaskManager.Application.Features.Tasks.Commands.RemoveTagFromTask;
 
 namespace TaskManager.Api.Controllers;
 
@@ -59,6 +63,44 @@ public class TaskController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> DeleteTask(int id, CancellationToken cancellationToken)
     {
         var command = new DeleteTaskCommand(id);
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpGet("{id}/tags")]
+    [ProducesResponseType(typeof(IEnumerable<TagResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTaskTags(int id, CancellationToken cancellationToken)
+    {
+        var query = new GetTaskTagsQuery(id);
+        var result = await _mediator.Send(query, cancellationToken);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPost("{id}/tags/{tagId}")]
+    [ProducesResponseType(typeof(IEnumerable<TagResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AssignTagToTask(int id, int tagId, CancellationToken cancellationToken)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
+        var command = new AssignTagToTaskCommand(id, tagId, userId);
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpDelete("{id}/tags/{tagId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveTagFromTask(int id, int tagId, CancellationToken cancellationToken)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException("User ID not found in token"));
+        var command = new RemoveTagFromTaskCommand(id, tagId, userId);
         await _mediator.Send(command, cancellationToken);
         return NoContent();
     }
