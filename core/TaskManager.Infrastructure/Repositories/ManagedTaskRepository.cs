@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManager.Core.Entities;
+using TaskManager.Core.Enums;
 using TaskManager.Core.Interfaces;
 using TaskManager.Infrastructure.Data.Database;
 
@@ -29,6 +30,40 @@ namespace TaskManager.Infrastructure.Repositories
             return await _dbContext.ManagedTasks
                 .Include(t => t.Tags)
                 .FirstOrDefaultAsync(x => x.Id == taskId, cancellationToken);
+        }
+
+        public async Task<(IEnumerable<ManagedTask> Items, int TotalCount)> GetPagedAsync(
+            int pageNumber, int pageSize,
+            bool? isCompleted = null, PriorityLevel? priority = null,
+            int? assignedToId = null, string? search = null,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _dbContext.ManagedTasks
+                .AsNoTracking()
+                .Include(t => t.CreatedBy)
+                .Include(t => t.AssignedTo)
+                .AsQueryable();
+
+            if (isCompleted.HasValue)
+                query = query.Where(t => t.IsCompleted == isCompleted.Value);
+
+            if (priority.HasValue)
+                query = query.Where(t => t.Priority == priority.Value);
+
+            if (assignedToId.HasValue)
+                query = query.Where(t => t.AssignedToId == assignedToId.Value);
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(t => t.Title.Contains(search) || t.Description.Contains(search));
+
+            var totalCount = await query.CountAsync(cancellationToken);
+            var items = await query
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
         }
 
         public async Task<bool> UpdateAsync(ManagedTask mappedTask, CancellationToken cancellationToken = default)

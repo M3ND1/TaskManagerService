@@ -2,15 +2,18 @@ using MediatR;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using TaskManager.Application.DTOs;
 using TaskManager.Application.DTOs.ManagedTask;
 using TaskManager.Application.DTOs.Tag;
 using TaskManager.Application.Features.Tasks.Queries.GetTask;
+using TaskManager.Application.Features.Tasks.Queries.GetAllTasks;
 using TaskManager.Application.Features.Tasks.Queries.GetTaskTags;
 using TaskManager.Application.Features.Tasks.Commands.CreateTask;
 using TaskManager.Application.Features.Tasks.Commands.UpdateTask;
 using TaskManager.Application.Features.Tasks.Commands.DeleteTask;
 using TaskManager.Application.Features.Tasks.Commands.AssignTagToTask;
 using TaskManager.Application.Features.Tasks.Commands.RemoveTagFromTask;
+using TaskManager.Core.Enums;
 
 namespace TaskManager.Api.Controllers;
 
@@ -31,6 +34,23 @@ public class TaskController(IMediator mediator) : ControllerBase
         var command = new CreateTaskCommand(createManagedTaskDto, userId);
         var result = await _mediator.Send(command, cancellationToken);
         return CreatedAtAction(nameof(GetTask), new { id = result.Id }, result);
+    }
+
+    [Authorize]
+    [HttpGet]
+    [ProducesResponseType(typeof(PagedResult<ManagedTaskResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllTasks(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] bool? isCompleted = null,
+        [FromQuery] PriorityLevel? priority = null,
+        [FromQuery] int? assignedToId = null,
+        [FromQuery] string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetAllTasksQuery(pageNumber, pageSize, isCompleted, priority, assignedToId, search);
+        var result = await _mediator.Send(query, cancellationToken);
+        return Ok(result);
     }
 
     [Authorize]
