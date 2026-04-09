@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManager.Core.Entities;
 using TaskManager.Core.Enums;
+using TaskManager.Core.Exceptions;
 using TaskManager.Core.Interfaces;
 using TaskManager.Infrastructure.Data.Database;
 
@@ -76,9 +77,10 @@ namespace TaskManager.Infrastructure.Repositories
                 var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
                 return affectedRows > 0;
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                return false;
+                throw new ConcurrencyConflictException(
+                    $"The record was modified by another user. Please refresh and try again.", ex);
             }
         }
 

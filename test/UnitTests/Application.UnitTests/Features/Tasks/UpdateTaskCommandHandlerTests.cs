@@ -87,4 +87,40 @@ public class UpdateTaskCommandHandlerTests
         // Assert
         await act.Should().ThrowAsync<DatabaseOperationException>();
     }
+
+    [Fact]
+    public async Task Handle_Should_ThrowConcurrencyConflictException_WhenRepositoryThrowsConcurrencyConflict()
+    {
+        // Arrange
+        var existingTask = new ManagedTask { Id = 1, Title = "Task", Description = "Desc", CreatedById = 5 };
+        _taskRepositoryMock.Setup(r => r.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingTask);
+        _taskRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ConcurrencyConflictException("Concurrency conflict"));
+        var handler = new UpdateTaskCommandHandler(_taskRepositoryMock.Object, _mapper);
+
+        // Act
+        Func<Task> act = async () => await handler.Handle(new UpdateTaskCommand(1, new UpdateManagedTaskDto()), CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ConcurrencyConflictException>();
+    }
+
+    [Fact]
+    public async Task Handle_Should_SetRowVersion_FromDto_BeforeUpdate()
+    {
+        // Arrange
+        var existingTask = new ManagedTask { Id = 1, Title = "Task", Description = "Desc", CreatedById = 5, RowVersion = 1 };
+        var dto = new UpdateManagedTaskDto { Title = "Updated", RowVersion = 42 };
+        _taskRepositoryMock.Setup(r => r.GetAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(existingTask);
+        _taskRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<ManagedTask>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        var handler = new UpdateTaskCommandHandler(_taskRepositoryMock.Object, _mapper);
+
+        // Act
+        await handler.Handle(new UpdateTaskCommand(1, dto), CancellationToken.None);
+
+        // Assert
+        _taskRepositoryMock.Verify(r => r.UpdateAsync(
+            It.Is<ManagedTask>(t => t.RowVersion == 42),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
 }

@@ -10,4 +10,5 @@ public class UpdateManagedTaskDto
     public bool? IsCompleted { get; set; }
     public int? EstimatedHours { get; set; }
     public int? ActualHours { get; set; }
+    public uint RowVersion { get; set; }
 }
