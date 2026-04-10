@@ -2,6 +2,7 @@ using MediatR;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.DTOs.ManagedTask;
 using TaskManager.Application.DTOs.Tag;
@@ -19,6 +20,7 @@ namespace TaskManager.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("api")]
 public class TaskController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
