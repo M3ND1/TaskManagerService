@@ -90,7 +90,9 @@ namespace TaskManager.Infrastructure.Repositories
 
             if (searchedTask == null)
                 return false;
-            _dbContext.ManagedTasks.Remove(searchedTask);
+
+            searchedTask.IsDeleted = true;
+            searchedTask.DeletedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync(cancellationToken);
             return true;
         }

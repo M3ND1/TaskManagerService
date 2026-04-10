@@ -25,5 +25,8 @@ namespace TaskManager.Core.Entities
         public virtual ICollection<Tag>? Tags { get; set; }
 
         public uint RowVersion { get; set; }
+
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
     }
 }

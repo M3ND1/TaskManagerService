@@ -87,6 +87,10 @@ public class TaskManagerDbContext(DbContextOptions<TaskManagerDbContext> dbConte
             e.HasIndex(t => new { t.AssignedToId, t.IsCompleted });
 
             e.Property(t => t.RowVersion).IsRowVersion();
+
+            e.Property(t => t.IsDeleted).IsRequired().HasDefaultValue(false);
+            e.Property(t => t.DeletedAt).IsRequired(false);
+            e.HasQueryFilter(t => !t.IsDeleted);
         });
 
         modelBuilder.Entity<RefreshToken>(e =>

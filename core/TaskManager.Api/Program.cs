@@ -1,4 +1,5 @@
 using MediatR;
+using Serilog;
 using FluentValidation;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
@@ -17,6 +18,9 @@ using TaskManager.Infrastructure.Authentication;
 using TaskManager.Application.Features.Users.Commands.LoginUser;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, loggerConfig) =>
+    loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddMediatR(typeof(LoginUserCommand).Assembly);
 builder.Services.AddFluentValidationAutoValidation();
@@ -134,6 +138,7 @@ builder.Services.AddExceptionHandler<DatabaseOperationExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 var app = builder.Build();
 app.UseExceptionHandler(o => { });
+app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
 {
