@@ -105,4 +105,4 @@ jobs:
         run: docker build -t taskmanager-api:${{ github.sha }} .
 
       - name: Verify Docker image
-        run: docker run --rm taskmanager-api:${{ github.sha }} dotnet --info
+        run: docker run --rm --entrypoint dotnet taskmanager-api:${{ github.sha }} --list-runtimes
