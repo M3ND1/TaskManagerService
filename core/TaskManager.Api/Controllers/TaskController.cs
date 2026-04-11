@@ -2,20 +2,25 @@ using MediatR;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
+using TaskManager.Application.DTOs;
 using TaskManager.Application.DTOs.ManagedTask;
 using TaskManager.Application.DTOs.Tag;
 using TaskManager.Application.Features.Tasks.Queries.GetTask;
+using TaskManager.Application.Features.Tasks.Queries.GetAllTasks;
 using TaskManager.Application.Features.Tasks.Queries.GetTaskTags;
 using TaskManager.Application.Features.Tasks.Commands.CreateTask;
 using TaskManager.Application.Features.Tasks.Commands.UpdateTask;
 using TaskManager.Application.Features.Tasks.Commands.DeleteTask;
 using TaskManager.Application.Features.Tasks.Commands.AssignTagToTask;
 using TaskManager.Application.Features.Tasks.Commands.RemoveTagFromTask;
+using TaskManager.Core.Enums;
 
 namespace TaskManager.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("api")]
 public class TaskController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
@@ -34,6 +39,23 @@ public class TaskController(IMediator mediator) : ControllerBase
     }
 
     [Authorize]
+    [HttpGet]
+    [ProducesResponseType(typeof(PagedResult<ManagedTaskResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllTasks(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] bool? isCompleted = null,
+        [FromQuery] PriorityLevel? priority = null,
+        [FromQuery] int? assignedToId = null,
+        [FromQuery] string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetAllTasksQuery(pageNumber, pageSize, isCompleted, priority, assignedToId, search);
+        var result = await _mediator.Send(query, cancellationToken);
+        return Ok(result);
+    }
+
+    [Authorize]
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -49,6 +71,7 @@ public class TaskController(IMediator mediator) : ControllerBase
     [ProducesResponseType(typeof(ManagedTaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateManagedTaskDto updateManagedTaskDto, CancellationToken cancellationToken)
     {
         var command = new UpdateTaskCommand(id, updateManagedTaskDto);

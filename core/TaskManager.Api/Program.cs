@@ -1,5 +1,8 @@
 using MediatR;
+using Serilog;
 using FluentValidation;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using TaskManager.Api.Extensions;
 using TaskManager.Core.Interfaces;
@@ -15,6 +18,9 @@ using TaskManager.Infrastructure.Authentication;
 using TaskManager.Application.Features.Users.Commands.LoginUser;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, loggerConfig) =>
+    loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddMediatR(typeof(LoginUserCommand).Assembly);
 builder.Services.AddFluentValidationAutoValidation();
@@ -43,6 +49,42 @@ builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<ITokenValidationService, TokenValidationService>();
 //Authentication
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+// Rate limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("auth", limiter =>
+    {
+        limiter.PermitLimit = 10;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+    });
+    options.AddFixedWindowLimiter("api", limiter =>
+    {
+        limiter.PermitLimit = 60;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 2;
+    });
+});
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Default", policy =>
+    {
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? ["http://localhost:3000"];
+        policy.WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+// Health checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<TaskManagerDbContext>("database");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -91,10 +133,12 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
 builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<ForbiddenExceptionHandler>();
+builder.Services.AddExceptionHandler<ConcurrencyConflictExceptionHandler>();
 builder.Services.AddExceptionHandler<DatabaseOperationExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 var app = builder.Build();
 app.UseExceptionHandler(o => { });
+app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
 {
@@ -103,8 +147,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("Default");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();

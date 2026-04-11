@@ -26,6 +26,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore());
 
         CreateMap<UpdateManagedTaskDto, ManagedTask>()
+            .ForMember(dest => dest.RowVersion, opt => opt.Ignore())
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
         //Tag

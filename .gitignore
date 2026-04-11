@@ -69,3 +69,5 @@ diff.txt
 
 # VS Code local settings
 .vscode/settings.json
+# Serilog logs
+logs/

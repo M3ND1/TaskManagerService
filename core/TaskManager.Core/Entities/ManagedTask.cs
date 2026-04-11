@@ -23,5 +23,10 @@ namespace TaskManager.Core.Entities
         public virtual User? AssignedTo { get; set; }
         public virtual User CreatedBy { get; set; } = null!;
         public virtual ICollection<Tag>? Tags { get; set; }
+
+        public uint RowVersion { get; set; }
+
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
     }
 }

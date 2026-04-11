@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManager.Core.Entities;
+using TaskManager.Core.Enums;
+using TaskManager.Core.Exceptions;
 using TaskManager.Core.Interfaces;
 using TaskManager.Infrastructure.Data.Database;
 
@@ -31,6 +33,40 @@ namespace TaskManager.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Id == taskId, cancellationToken);
         }
 
+        public async Task<(IEnumerable<ManagedTask> Items, int TotalCount)> GetPagedAsync(
+            int pageNumber, int pageSize,
+            bool? isCompleted = null, PriorityLevel? priority = null,
+            int? assignedToId = null, string? search = null,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _dbContext.ManagedTasks
+                .AsNoTracking()
+                .Include(t => t.CreatedBy)
+                .Include(t => t.AssignedTo)
+                .AsQueryable();
+
+            if (isCompleted.HasValue)
+                query = query.Where(t => t.IsCompleted == isCompleted.Value);
+
+            if (priority.HasValue)
+                query = query.Where(t => t.Priority == priority.Value);
+
+            if (assignedToId.HasValue)
+                query = query.Where(t => t.AssignedToId == assignedToId.Value);
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(t => t.Title.Contains(search) || t.Description.Contains(search));
+
+            var totalCount = await query.CountAsync(cancellationToken);
+            var items = await query
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
+        }
+
         public async Task<bool> UpdateAsync(ManagedTask mappedTask, CancellationToken cancellationToken = default)
         {
             if (mappedTask == null) return false;
@@ -41,9 +77,19 @@ namespace TaskManager.Infrastructure.Repositories
                 var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
                 return affectedRows > 0;
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                return false;
+                // Determine whether the entity simply doesn't exist or was modified by another user.
+                var entry = ex.Entries.FirstOrDefault();
+                if (entry != null)
+                {
+                    var dbValues = await entry.GetDatabaseValuesAsync(cancellationToken);
+                    if (dbValues == null)
+                        return false; // Entity no longer exists — not a conflict
+                }
+
+                throw new ConcurrencyConflictException(
+                    "The record was modified by another user. Please refresh and try again.", ex);
             }
         }
 
@@ -53,7 +99,9 @@ namespace TaskManager.Infrastructure.Repositories
 
             if (searchedTask == null)
                 return false;
-            _dbContext.ManagedTasks.Remove(searchedTask);
+
+            searchedTask.IsDeleted = true;
+            searchedTask.DeletedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync(cancellationToken);
             return true;
         }

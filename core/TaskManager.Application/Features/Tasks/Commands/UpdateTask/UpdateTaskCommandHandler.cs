@@ -15,8 +15,10 @@ public class UpdateTaskCommandHandler(IManagedTaskRepository managedTaskReposito
         var taskFromDb = await _managedTaskRepository.GetAsync(request.TaskId, cancellationToken) 
             ?? throw new NotFoundException($"Task with ID {request.TaskId} not found");
 
+        taskFromDb.RowVersion = request.UpdateManagedTaskDto.RowVersion;
         _mapper.Map(request.UpdateManagedTaskDto, taskFromDb);
         taskFromDb.UpdatedAt = DateTime.UtcNow;
+
         if (!await _managedTaskRepository.UpdateAsync(taskFromDb, cancellationToken))
             throw new DatabaseOperationException("Failed to update task in database");
 

@@ -17,4 +17,5 @@ public class ManagedTaskResponseDto
     public int CreatedById { get; set; }
     public UserResponseDto? CreatedBy { get; set; }
     public UserResponseDto? AssignedTo { get; set; }
+    public uint RowVersion { get; set; }
 }
