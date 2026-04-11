@@ -79,8 +79,17 @@ namespace TaskManager.Infrastructure.Repositories
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                // Determine whether the entity simply doesn't exist or was modified by another user.
+                var entry = ex.Entries.FirstOrDefault();
+                if (entry != null)
+                {
+                    var dbValues = await entry.GetDatabaseValuesAsync(cancellationToken);
+                    if (dbValues == null)
+                        return false; // Entity no longer exists — not a conflict
+                }
+
                 throw new ConcurrencyConflictException(
-                    $"The record was modified by another user. Please refresh and try again.", ex);
+                    "The record was modified by another user. Please refresh and try again.", ex);
             }
         }
 

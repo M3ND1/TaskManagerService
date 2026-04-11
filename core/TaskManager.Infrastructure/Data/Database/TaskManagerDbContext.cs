@@ -86,7 +86,15 @@ public class TaskManagerDbContext(DbContextOptions<TaskManagerDbContext> dbConte
             e.HasIndex(t => t.CreatedById);
             e.HasIndex(t => new { t.AssignedToId, t.IsCompleted });
 
-            e.Property(t => t.RowVersion).IsRowVersion();
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+            {
+                // SQLite has no xmin system column; treat as a plain column for integration tests
+                e.Property(t => t.RowVersion).HasDefaultValue(0u);
+            }
+            else
+            {
+                e.Property(t => t.RowVersion).IsRowVersion();
+            }
 
             e.Property(t => t.IsDeleted).IsRequired().HasDefaultValue(false);
             e.Property(t => t.DeletedAt).IsRequired(false);
